@@ -1,0 +1,227 @@
+free-ad5x - plan
+================
+
+Goal
+----
+Open up the FlashForge AD5X: replace FlashForge's closed programs with
+open-source ones. FlashForge's Linux stays as it is - no custom distro.
+
+The closed program to replace is firmwareExe (/usr/prog/PROGRAM/software/).
+It is the screen app, but it also runs most of the printer.
+
+What firmwareExe does (from firmwareExe 3.1.0)
+-----------------------------------------------
+
+Must replace - printer does not work without these:
+  1. Starts Klipper at boot (/usr/prog/klipper/start.sh)
+  2. Wakes the toolhead board at power-on (sends 'A' on /dev/ttyS5)
+  3. Runs printing: start / pause / resume / cancel, via Klipper's API socket
+  4. Network: brings up eth0 and Wi-Fi, saves Wi-Fi networks, hotspot mode
+  5. Power button and safe power-off
+  6. Touchscreen: all menus, screen sleep
+
+Replace if used:
+  7. IFS 4-colour unit (/dev/ttyS4): load, unload, colour change, cut, purge
+  8. Load cell weighing / crash detection (/dev/ttyS7)
+  9. Camera stream (mjpg_streamer, port 8080)
+ 10. USB stick detect and print
+ 11. Buzzer sounds
+ 12. Clock from the internet (ntpclient)
+
+FlashForge-only - drop:
+ 13. FlashForge cloud (MQTT, Alibaba OSS uploads)
+ 14. FlashPrint / Orca network printing (Moonraker covers normal slicers)
+ 15. FlashForge update system
+ 16. FlashForge calibration / setup wizards
+
+Network (4) - all modes
+-----------------------
+Settings: "network" in /usr/prog/config/Adventurer5M.json.
+Saved Wi-Fi networks: /usr/prog/wifi/wpa_supplicant.conf.
+Only one mode is active. Checked in this order at boot:
+
+  Hotspot   wifiHotspotStatus  ifconfig wlan0 up; ifconfig wlan0 192.168.0.240
+                               udhcpd -I 192.168.0.240
+                               hostapd -B /usr/prog/wifi/rtl_hostapd_2G.conf
+  Wi-Fi     wifiStationStatus  wpa_supplicant -d -Dnl80211 -iwlan0
+                                 -c/usr/prog/wifi/wpa_supplicant.conf -B
+                               wpa_cli -i wlan0 enable_network all
+                               then address on wlan0
+  Ethernet  ethernetStatus     ifconfig eth0 up; cable = /sys/class/net/eth0/carrier
+                               then address on eth0
+
+Address (Wi-Fi or Ethernet):
+  isUdhcpc  udhcpc -i <iface>
+  isManual  ifconfig <iface> <configIp> netmask <configNetmask>
+            route add default gw <configGateway>
+            "nameserver <configDns>" in /etc/resolv.conf
+
+Ethernet cable plugged in: killall udhcpc, flush address, DHCP again.
+Ethernet cable pulled: killall udhcpc, flush address.
+eth0 MAC is set earlier by app_startup.sh from /usr/prog/MAC.
+Adding / saving Wi-Fi networks (wpa_cli add_network, save_config) is a
+touchscreen menu job (6), not startup.
+
+Touchscreen (6) - GrumpyScreen
+------------------------------
+pellcorp/grumpyscreen (what Simple AF uses), release v2.0.0-301,
+grumpyscreen.zip: static MIPS32r1 binary, FPXX, legacy NaN.
+Test run on the AD5X (from /tmp, removed after): the kernel refuses it
+(shell then reports 'syntax error: unexpected "("'). The X2600 kernel
+only runs NaN2008 binaries (no ieee754= on the kernel command line).
+/proc/cpuinfo does not list NaN modes.
+No release asset fits (grumpyscreen and -smallscreen: MIPS legacy NaN,
+-rpi: ARM).
+Working without recompiling (tested 2026-10-11, run from /tmp):
+  - Set the NaN2008 bit in the ELF header: e_flags |= 0x400
+    (0x50001007 -> 0x50001407, 1 byte). Kernel accepts it, runs, connects
+    to Moonraker. Code is still built for legacy NaN - only matters if the
+    app creates/tests NaN values.
+  - Env LVGL_EVDEV_DEV=/dev/input/event1 (event0 is md-gpio-keys; without
+    the variable GrumpyScreen uses event0 = no touch).
+  - Env DISPLAY_ROTATE=0 (overrides display_rotate: 3 in the K1 config).
+  - Touch scale: the release has no calibration (GUPPY_CALIBRATE not
+    built). Raw taps at the corners: (85,100) (718,105) (717,380) (87,352)
+    out of a reported 0-800 x 0-480. Fixed in the tsc2007 driver instead:
+    tsc_x_actrue_min=309 tsc_x_actrue_max=3765
+    tsc_y_actrue_min=705 tsc_y_actrue_max=3447
+    (stock: 0 / 4096), worked out from the stock tslib pointercal
+    (77674 -133 -4683272 87 97842 -8081728 65536). Rest of the insmod line
+    as stock app_startup.sh. Touch confirmed working.
+Later (user): make an auto-build repo for GrumpyScreen so the AD5X gets
+a proper build instead of the patched K1 one. What it needs to produce:
+  - a NaN2008 build (needs a NaN2008 MIPS toolchain + C library; GCC will
+    not link -mnan=2008 code against a legacy-NaN libc) - removes the
+    1-byte e_flags patch and the legacy-NaN risk.
+  - built with GUPPY_CALIBRATE (on-screen resistive touch calibration,
+    calibration.json) or a touch scale option - removes the changed
+    tsc2007 actrue values; touch driver can stay stock.
+Stays the same either way: AD5X grumpyscreen.cfg, LVGL_EVDEV_DEV and
+DISPLAY_ROTATE at startup.
+Screen facts: /dev/fb0 800x480 32 bpp (virtual 800x960), touch
+TSC2007 = /dev/input/event1, backlight /sys/class/backlight/backlight_gpio0.
+
+Power key / power-off (5)
+-------------------------
+AD5X only has the hard power switch. firmwareExe's power-key code is
+shared with other FlashForge models:
+  MainWindow::powerKeyChecking finds the input device named
+  "md-gpio-keys" (keyboard_gpio_add.ko, PB11, KEY_POWER2) and starts
+  PowerKeyThread on it. A key press -> MainWindow::doPowerOff():
+  wake screen, "Do you want to turn off the printer ?", Yes ->
+  gpio_out(44, 0).
+Nothing is wired to PB11 on the AD5X, so this never fires. The same
+GPIO 44 = 0 is used by the screen's power-off, power off after print
+(printCompletedPowerOff) and FlashForge's app (doPowerOff(string,int)).
+What GPIO 44 does on the AD5X is unknown. Optional, not needed for
+printing.
+
+Not needed:
+ - /dev/ttyS3: FF laziness - unused air-quality sensor code from another
+   model; firmwareExe never starts it.
+
+Steps
+-----
+ 1. [done] Startup script that does 1, 2 and 4 instead of firmwareExe.
+ 2. [part] Moonraker + web UI done. Klipper is still FlashForge's.
+ 3. [not needed] Power button / power-off (5) - see below.
+ 4. [next] Open-source touchscreen app (6) - GrumpyScreen, see below.
+ 5. IFS, load cell, camera, USB, buzzer (7-11) as needed. Clock (12) done.
+ 6. [done] Stop firmwareExe from starting.
+
+Printer state (2026-10-10)
+--------------------------
+Stock FlashForge AD5X firmware (software 3.1.0, control 1.1.1, kernel
+2.0.1, library 2.0.1), Zmod removed, all Zmod leftovers wiped.
+SSH: root / root (Zmod's AD5X-root.tgz package, run from USB).
+
+Changed on the printer:
+  /usr/prog/app_startup.sh      firmwareExe start + 10 s restart block
+                                replaced by:
+                                /usr/prog/free-ad5x/startup.sh
+                                  > /usr/data/logs/free-ad5x.log 2>&1 &
+  /usr/prog/free-ad5x/startup.sh  copy of startup.sh in this folder
+  /usr/data/moonraker           Moonraker (moonraker-ad5x.tar.gz)
+  /usr/data/moonraker-env       Moonraker's Python packages + libs
+  /usr/data/config/moonraker.conf
+  /usr/data/nginx               nginx + nginx.conf (fluidd-ad5x.tar.gz)
+  /usr/data/fluidd              Fluidd v1.37.6
+  /usr/data/tmp                 nginx temp files
+
+startup.sh order: eboard -> Klipper -> network -> Moonraker -> nginx.
+Logs: /usr/data/logs/free-ad5x.log, moonraker.log, moonraker.out,
+      nginx-error.log.
+
+Web: http://<printer>/ (Fluidd via nginx), Moonraker on port 7125.
+
+Backups are kept off the printer: original app_startup.sh (= official
+3.1.0 file, md5 08ba2971...) is on the 31 GB USB stick in
+free-ad5x-backup/.
+
+Moonraker package (moonraker-ad5x.tar.gz)
+-----------------------------------------
+Moonraker commit abd2026b90 - same commit Simple AF pins. Later commits
+bump the Python requirements (3ea83163b0, paho-mqtt 2.1.0 etc.), which
+Simple AF pinned against. Reports version v0.9.3-abd2026.
+Runs on FlashForge's Python 3.8.2:
+  PYTHONPATH      /usr/data/moonraker-env/site-packages
+  LD_LIBRARY_PATH /usr/data/moonraker-env/lib + FlashForge libs
+  SSL_CERT_FILE   certifi bundle in site-packages
+site-packages: pure-Python packages from Simple AF's k1/moonraker-env.tar.gz
+  (pip/setuptools/virtualenv left out).
+From Creality Ender-3 V3 firmware F001_V1.2.3.23 (same MIPS NaN2008/FP64
+  ABI): sqlite3 package, _sqlite3 module, libsqlite3.so.0, libsodium.so.23.
+From FlashForge's Python: lmdb, pillow 7.0.0, streaming-form-data 1.8.1,
+  pyserial.
+No [update_manager] in moonraker.conf - Moonraker must not update itself.
+
+Web package (fluidd-ad5x.tar.gz)
+--------------------------------
+nginx 1.17.7 from the same Ender-3 V3 firmware (needs libpcre.so.1,
+libz.so.1 - both on the AD5X). Port 80 serves /usr/data/fluidd and passes
+/websocket, /printer, /api, /access, /machine, /server to Moonraker.
+Harmless startup alert: nginx tries its built-in /var/log/nginx/error.log
+before reading nginx.conf.
+
+Building the packages (on the PC)
+---------------------------------
+build/moonraker/  build.py, moonraker.conf
+build/fluidd/     build.py, nginx.conf
+
+Downloads and extracted files are not kept here. Put them in a throwaway
+folder next to a copy of build.py:
+
+moonraker-ad5x.tar.gz
+  <folder>/dl/moonraker.tar.gz   https://codeload.github.com/Arksine/
+                                 moonraker/tar.gz/<MR_COMMIT in build.py>
+  arg 1: Simple AF's k1/moonraker-env.tar.gz (pellcorp/creality)
+  arg 2: folder with files extracted from F001_V1.2.3.23.ingenic
+         images/rootfs.squashfs (7-Zip): usr/lib/libsqlite3.so.0.8.6,
+         usr/lib/libsodium.so.23.3.0, usr/lib/python3.8/sqlite3/*.py,
+         usr/lib/python3.8/lib-dynload/_sqlite3.cpython-38-mipsel-linux-gnu.so
+  python build.py <moonraker-env.tar.gz> <f001 folder>
+
+fluidd-ad5x.tar.gz
+  <folder>/nginx.conf
+  <folder>/dl/fluidd.zip         Fluidd release (v1.37.6 used)
+  arg 1: same F001 folder, plus usr/sbin/nginx and etc/nginx/mime.types
+  python build.py <f001 folder>
+
+Install: stream to the printer with gunzip -c | tar -xf - -C /usr/data
+(busybox tar here has no -z). Copy moonraker.conf to
+/usr/data/config/moonraker.conf.
+
+Power-cycle test (2026-10-10): passed. startup.sh started eboard, Klipper
+(both MCUs configured), network, Moonraker (klippy ready, no failed
+components, v0.9.3-abd2026) and nginx (Fluidd on port 80).
+
+Clock (12): no battery clock, boots at 1970. startup.sh runs clock_sync
+in the background: /usr/prog/ntpclient -c 1 -s -h pool.ntp.org every 5 s
+until the year is >= 2024 (max 5 min), then logs "clock: <date>".
+firmwareExe ran it without -c, which leaves ntpclient running as a daemon
+(re-sync every 600 s); -c 1 sets the time once and exits.
+With a 1970 clock HTTPS fails ("certificate is not yet valid").
+
+Clock power-cycle test (2026-10-11): passed. "clock: Sun Oct 11 01:17:42
+UTC 2026" logged, no ntpclient left running, no certificate errors in
+moonraker.log.
