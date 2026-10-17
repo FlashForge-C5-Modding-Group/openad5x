@@ -1,14 +1,13 @@
 #!/bin/sh
-# free-ad5x startup: toolhead board, Klipper, network, clock, Moonraker, nginx
+# openad5x startup: toolhead board, Klipper, network, clock, then startup.d
 
 CFG=/usr/prog/config/Adventurer5M.json
 WIFI=/usr/prog/wifi
 EBOARD=/dev/ttyS5
-MR_DIR=/usr/data/moonraker
-MR_ENV=/usr/data/moonraker-env
-NGINX_DIR=/usr/data/nginx
+DROPIN_DIR=/usr/data/openad5x/startup.d
+DROPIN_LOGS=/usr/data/logs/openad5x
 
-log() { echo "free-ad5x: $*"; }
+log() { echo "openad5x: $*"; }
 
 net_get() {
 	sed -n '/"network"/,/}/s/.*"'"$1"'" *: *"\{0,1\}\([^",]*\).*/\1/p' "$CFG" | head -n 1
@@ -125,16 +124,6 @@ network_start() {
 	fi
 }
 
-moonraker_start() {
-	[ -f $MR_DIR/moonraker/moonraker.py ] || return 0
-	PYTHONPATH=$MR_ENV/site-packages \
-	LD_LIBRARY_PATH=$MR_ENV/lib:/usr/prog/Python-3.8.2/lib:/usr/prog/openssl-1.0.2d/lib:/usr/prog/libffi-3.4.4/lib \
-	SSL_CERT_FILE=$MR_ENV/site-packages/certifi/cacert.pem \
-	/usr/prog/Python-3.8.2/bin/python3 $MR_DIR/moonraker/moonraker.py -d /usr/data \
-		> /usr/data/logs/moonraker.out 2>&1 &
-	log "moonraker: started"
-}
-
 clock_sync() {
 	i=0
 	while [ $i -lt 60 ]; do
@@ -149,16 +138,19 @@ clock_sync() {
 	log "clock: not set"
 }
 
-nginx_start() {
-	[ -x $NGINX_DIR/nginx ] || return 0
-	mkdir -p /usr/data/tmp
-	$NGINX_DIR/nginx -p $NGINX_DIR -c $NGINX_DIR/nginx.conf &&
-		log "nginx: started"
+run_dropins() {
+	[ -d "$DROPIN_DIR" ] || return 0
+	mkdir -p "$DROPIN_LOGS"
+	for script in "$DROPIN_DIR"/*.sh; do
+		[ -f "$script" ] || continue
+		name=$(basename "$script" .sh)
+		sh "$script" > "$DROPIN_LOGS/$name.log" 2>&1
+		log "startup.d: $name exit $?"
+	done
 }
 
 eboard_start
 /usr/prog/klipper/start.sh &
 network_start
 clock_sync &
-moonraker_start
-nginx_start
+run_dropins

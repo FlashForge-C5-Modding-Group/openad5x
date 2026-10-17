@@ -9,6 +9,34 @@ open-source ones. FlashForge's Linux stays as it is - no custom distro.
 The closed program to replace is firmwareExe (/usr/prog/PROGRAM/software/).
 It is the screen app, but it also runs most of the printer.
 
+End goal: one OS for all FlashForge printers. Track OpenCreator
+(FlashForge-C5-Modding-Group/opencreator-fs, Creator 5, MIT) as closely as
+possible so the two can be merged later.
+Last checked: commit 5be3277620 (2026-10-10).
+Same idea, different so far:
+  ours                         theirs
+  startup.sh core + startup.d  firmwareExe script (Wi-Fi + watchdog) ->
+    (sequential, once/boot)      startup.sh loop -> scripts/ (parallel)
+  10-nan-relaxed (AD5X 2.0.1,  01-fixnan (0x00B330D1, C5 2.0.7, no checks)
+    checked)
+  clock in core (ntpclient)    02-fixtime (rdate)
+  40-moonraker (/usr/data)     20-msmr (/usr/prog moonrakerDaemon + nginx)
+  45-nginx (/usr/data)         20-msmr
+  -                            05-entfix (Entware /opt), 10-klipper,
+                               30-camera, 99 updater, tunneled bridge
+  eboard wake (AD5X only)      -
+  Ethernet/Wi-Fi/hotspot/      Wi-Fi only
+    static, cable watch
+Worth taking from them: Wi-Fi watchdog (USB reset), camera script,
+power_loss_recovery (their klipper-c5).
+GrumpyScreen calibration: checked 2026-10-11, no build has it.
+  pellcorp release tag "main" (what their installgrumpy.sh downloads) =
+  same binary as v2.0.0-301 (md5 3e7316a3..., 695046a).
+  Their fork's "test" release: also legacy NaN, static, no calibration.
+  Their calibration.json is not read by any of these builds.
+  -> touch fix stays in the tsc2007 driver values (or a GUPPY_CALIBRATE
+     build from the planned auto-build repo).
+
 What firmwareExe does (from firmwareExe 3.1.0)
 -----------------------------------------------
 
@@ -72,6 +100,25 @@ only runs NaN2008 binaries (no ieee754= on the kernel command line).
 /proc/cpuinfo does not list NaN modes.
 No release asset fits (grumpyscreen and -smallscreen: MIPS legacy NaN,
 -rpi: ARM).
+
+Better fix (from the Creator 5 / OpenCreator group, tested 2026-10-11):
+allow legacy-NaN binaries in the kernel itself, same as booting with
+ieee754=relaxed:
+  busybox devmem 0x00a130d1 8 1
+Kernel package 2.0.1 on the AD5X (/usr/prog/PROGRAM/kernel/), Linux
+5.10.186+ #126 Mon Oct 28 18:48:28 PDT 2024. The byte is not in
+/proc/kallsyms (functions only), but 0x00a130d0 = 0x01 / 0x00a130d1 = 0x00
+fits "NaN2008 allowed / legacy allowed". Proven: before the write the
+unpatched official grumpyscreen was refused, after it the same file
+(md5 3e7316a3...) runs and connects to Moonraker. No kernel errors.
+C5 table (other kernel packages): 2.0.5/2.0.6 = 0x00a130d1,
+2.0.7 = 0x00b330d1 - check the byte reads 0x00 before writing.
+Now permanent via startup.d/10-nan-relaxed.sh (power-cycle 2026-10-11:
+"legacy NaN allowed (2.0.1, 0x00a130d1)"). Their own install: in app_startup.sh, on the blank line
+right above CONTROL_DIR=/usr/prog/PROGRAM/control/ add
+  # allow legacy nan binaries to run
+  busybox devmem 0x00a130d1 8 1
+With this, the 1-byte e_flags patch below is not needed.
 Working without recompiling (tested 2026-10-11, run from /tmp):
   - Set the NaN2008 bit in the ELF header: e_flags |= 0x400
     (0x50001007 -> 0x50001407, 1 byte). Kernel accepts it, runs, connects
@@ -88,7 +135,10 @@ Working without recompiling (tested 2026-10-11, run from /tmp):
     (stock: 0 / 4096), worked out from the stock tslib pointercal
     (77674 -133 -4683272 87 97842 -8081728 65536). Rest of the insmod line
     as stock app_startup.sh. Touch confirmed working.
-Later (user): make an auto-build repo for GrumpyScreen so the AD5X gets
+Decision (2026-10-11): use upstream GrumpyScreen as released (pellcorp,
+tag main), unpatched - runs because startup.d/10-nan-relaxed.sh allows
+legacy NaN. Auto-build repo below dropped for now.
+Old idea: make an auto-build repo for GrumpyScreen so the AD5X gets
 a proper build instead of the patched K1 one. What it needs to produce:
   - a NaN2008 build (needs a NaN2008 MIPS toolchain + C library; GCC will
     not link -mnan=2008 code against a legacy-NaN libc) - removes the
@@ -138,9 +188,10 @@ SSH: root / root (Zmod's AD5X-root.tgz package, run from USB).
 Changed on the printer:
   /usr/prog/app_startup.sh      firmwareExe start + 10 s restart block
                                 replaced by:
-                                /usr/prog/free-ad5x/startup.sh
-                                  > /usr/data/logs/free-ad5x.log 2>&1 &
-  /usr/prog/free-ad5x/startup.sh  copy of startup.sh in this folder
+                                /usr/prog/openad5x/startup.sh
+                                  > /usr/data/logs/openad5x.log 2>&1 &
+  /usr/prog/openad5x/startup.sh copy of startup.sh in this folder
+  /usr/data/openad5x/startup.d/ copy of startup.d/ in this folder
   /usr/data/moonraker           Moonraker (moonraker-ad5x.tar.gz)
   /usr/data/moonraker-env       Moonraker's Python packages + libs
   /usr/data/config/moonraker.conf
@@ -148,9 +199,34 @@ Changed on the printer:
   /usr/data/fluidd              Fluidd v1.37.6
   /usr/data/tmp                 nginx temp files
 
-startup.sh order: eboard -> Klipper -> network -> Moonraker -> nginx.
-Logs: /usr/data/logs/free-ad5x.log, moonraker.log, moonraker.out,
-      nginx-error.log.
+startup.sh order: eboard -> Klipper -> network -> clock -> startup.d
+(10-nan-relaxed, 40-moonraker, 45-nginx).
+Logs: /usr/data/logs/openad5x.log, openad5x/<drop-in>.log,
+      moonraker.log, moonraker.out, nginx-error.log.
+
+Startup design (installed 2026-10-11, power-cycle test passed)
+---------------------------------------------------------------
+Core + drop-ins (mix of our startup.sh and OpenCreator's LoopScript):
+  startup.sh   core, fixed order: eboard -> Klipper -> network ->
+               clock (background) -> startup.d
+  startup.d/   optional parts, *.sh run one after another in name order
+               (not in parallel like LoopScript). Each script returns
+               quickly and backgrounds its own long-running program.
+               Rename to .off to disable. A failing script does not stop
+               the others. Empty folder / spaces in names are fine.
+    10-nan-relaxed.sh  busybox devmem 0x00a130d1 8 1 (kernel package
+                       2.0.1 only; checks 0x00a130d0 = 0x01 and the byte
+                       is 0x00 first)
+    40-moonraker.sh    was moonraker_start in startup.sh
+    45-nginx.sh        was nginx_start in startup.sh
+    later: 50-usb-automount.sh, 70-grumpyscreen.sh
+Printer paths after the switch (rename free-ad5x -> openad5x):
+  /usr/prog/openad5x/startup.sh
+  /usr/data/openad5x/startup.d/
+  log  /usr/data/logs/openad5x.log (startup.sh, one line per drop-in
+       with its exit code), /usr/data/logs/openad5x/<name>.log per drop-in
+  app_startup.sh line becomes:
+    /usr/prog/openad5x/startup.sh > /usr/data/logs/openad5x.log 2>&1 &
 
 Web: http://<printer>/ (Fluidd via nginx), Moonraker on port 7125.
 
