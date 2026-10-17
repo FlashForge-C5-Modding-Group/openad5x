@@ -17,11 +17,13 @@ Same idea, different so far:
   ours                         theirs
   startup.sh core + startup.d  firmwareExe script (Wi-Fi + watchdog) ->
     (sequential, once/boot)      startup.sh loop -> scripts/ (parallel)
-  10-nan-relaxed (AD5X 2.0.1,  01-fixnan (0x00B330D1, C5 2.0.7, no checks)
-    checked)
+  - (NaN2008 builds, no NaN   01-fixnan (0x00B330D1, C5 2.0.7, no checks)
+    byte; 10-nan-relaxed
+    removed 2026-10-17)
   clock in core (ntpclient)    02-fixtime (rdate)
   40-moonraker (/usr/data)     20-msmr (/usr/prog moonrakerDaemon + nginx)
   45-nginx (/usr/data)         20-msmr
+  70-grumpyscreen (grumpy-ff)  -
   -                            05-entfix (Entware /opt), 10-klipper,
                                30-camera, 99 updater, tunneled bridge
   eboard wake (AD5X only)      -
@@ -29,13 +31,9 @@ Same idea, different so far:
     static, cable watch
 Worth taking from them: Wi-Fi watchdog (USB reset), camera script,
 power_loss_recovery (their klipper-c5).
-GrumpyScreen calibration: checked 2026-10-11, no build has it.
-  pellcorp release tag "main" (what their installgrumpy.sh downloads) =
-  same binary as v2.0.0-301 (md5 3e7316a3..., 695046a).
-  Their fork's "test" release: also legacy NaN, static, no calibration.
-  Their calibration.json is not read by any of these builds.
-  -> touch fix stays in the tsc2007 driver values (or a GUPPY_CALIBRATE
-     build from the planned auto-build repo).
+GrumpyScreen: their installgrumpy.sh downloads pellcorp's release tag
+  "main" (legacy NaN, no calibration). Ours: grumpy-ff build (NaN2008,
+  GUPPY_CALIBRATE) - see Touchscreen (6).
 
 What firmwareExe does (from firmwareExe 3.1.0)
 -----------------------------------------------
@@ -92,64 +90,46 @@ touchscreen menu job (6), not startup.
 
 Touchscreen (6) - GrumpyScreen
 ------------------------------
-pellcorp/grumpyscreen (what Simple AF uses), release v2.0.0-301,
-grumpyscreen.zip: static MIPS32r1 binary, FPXX, legacy NaN.
-Test run on the AD5X (from /tmp, removed after): the kernel refuses it
-(shell then reports 'syntax error: unexpected "("'). The X2600 kernel
-only runs NaN2008 binaries (no ieee754= on the kernel command line).
-/proc/cpuinfo does not list NaN modes.
-No release asset fits (grumpyscreen and -smallscreen: MIPS legacy NaN,
--rpi: ARM).
+Build: FlashForge-C5-Modding-Group/grumpy-ff (2026-10-17). GitHub Actions
+checks pellcorp/grumpyscreen's latest release every 6 hours (or by hand,
+optional tag and force rebuild), builds that exact commit unchanged and
+releases <tag>-ff with grumpyscreen-ff.tar.gz. Build logs: branch
+build-logs (latest.log + one file per run).
+  - toolchain: musl-cross-make, GCC 12.4, musl 1.2.4, defaults
+    mips32r2 / NaN2008 / FP64 / odd-spreg = same ABI as FlashForge's own
+    binaries (readelf on firmwareExe and /lib/libc.so.6: flags 0x70001405,
+    FP ABI 64-bit FPU, glibc /lib/ld-linux-mipsn8.so.1)
+  - static, built with GUPPY_CALIBRATE (on-screen touch calibration)
+  - build fails unless readelf shows static, mips32r2, nan2008, FP64
+  - release: grumpyscreen, pellcorp's default grumpyscreen.cfg
+    (unchanged), start.sh, VERSION (pellcorp tag + commit), root:root
+start.sh uses the input device with "Touchscreen" in its name (same rule
+as FlashForge's app_startup.sh) and passes it in LVGL_EVDEV_DEV - the
+event number depends on driver load order. On the AD5X now: event0 =
+md-gpio-keys, event1 = TSC2007 Touchscreen.
 
-Better fix (from the Creator 5 / OpenCreator group, tested 2026-10-11):
-allow legacy-NaN binaries in the kernel itself, same as booting with
-ieee754=relaxed:
-  busybox devmem 0x00a130d1 8 1
-Kernel package 2.0.1 on the AD5X (/usr/prog/PROGRAM/kernel/), Linux
-5.10.186+ #126 Mon Oct 28 18:48:28 PDT 2024. The byte is not in
-/proc/kallsyms (functions only), but 0x00a130d0 = 0x01 / 0x00a130d1 = 0x00
-fits "NaN2008 allowed / legacy allowed". Proven: before the write the
-unpatched official grumpyscreen was refused, after it the same file
-(md5 3e7316a3...) runs and connects to Moonraker. No kernel errors.
-C5 table (other kernel packages): 2.0.5/2.0.6 = 0x00a130d1,
-2.0.7 = 0x00b330d1 - check the byte reads 0x00 before writing.
-Now permanent via startup.d/10-nan-relaxed.sh (power-cycle 2026-10-11:
-"legacy NaN allowed (2.0.1, 0x00a130d1)"). Their own install: in app_startup.sh, on the blank line
-right above CONTROL_DIR=/usr/prog/PROGRAM/control/ add
-  # allow legacy nan binaries to run
-  busybox devmem 0x00a130d1 8 1
-With this, the 1-byte e_flags patch below is not needed.
-Working without recompiling (tested 2026-10-11, run from /tmp):
-  - Set the NaN2008 bit in the ELF header: e_flags |= 0x400
-    (0x50001007 -> 0x50001407, 1 byte). Kernel accepts it, runs, connects
-    to Moonraker. Code is still built for legacy NaN - only matters if the
-    app creates/tests NaN values.
-  - Env LVGL_EVDEV_DEV=/dev/input/event1 (event0 is md-gpio-keys; without
-    the variable GrumpyScreen uses event0 = no touch).
-  - Env DISPLAY_ROTATE=0 (overrides display_rotate: 3 in the K1 config).
-  - Touch scale: the release has no calibration (GUPPY_CALIBRATE not
-    built). Raw taps at the corners: (85,100) (718,105) (717,380) (87,352)
-    out of a reported 0-800 x 0-480. Fixed in the tsc2007 driver instead:
-    tsc_x_actrue_min=309 tsc_x_actrue_max=3765
-    tsc_y_actrue_min=705 tsc_y_actrue_max=3447
-    (stock: 0 / 4096), worked out from the stock tslib pointercal
-    (77674 -133 -4683272 87 97842 -8081728 65536). Rest of the insmod line
-    as stock app_startup.sh. Touch confirmed working.
-Decision (2026-10-11): use upstream GrumpyScreen as released (pellcorp,
-tag main), unpatched - runs because startup.d/10-nan-relaxed.sh allows
-legacy NaN. Auto-build repo below dropped for now.
-Old idea: make an auto-build repo for GrumpyScreen so the AD5X gets
-a proper build instead of the patched K1 one. What it needs to produce:
-  - a NaN2008 build (needs a NaN2008 MIPS toolchain + C library; GCC will
-    not link -mnan=2008 code against a legacy-NaN libc) - removes the
-    1-byte e_flags patch and the legacy-NaN risk.
-  - built with GUPPY_CALIBRATE (on-screen resistive touch calibration,
-    calibration.json) or a touch scale option - removes the changed
-    tsc2007 actrue values; touch driver can stay stock.
-Stays the same either way: AD5X grumpyscreen.cfg, LVGL_EVDEV_DEV and
-DISPLAY_ROTATE at startup.
-Screen facts: /dev/fb0 800x480 32 bpp (virtual 800x960), touch
-TSC2007 = /dev/input/event1, backlight /sys/class/backlight/backlight_gpio0.
+Installed (2026-10-17): /usr/data/grumpyscreen (v2.0.0-323-ff), started
+by startup.d/70-grumpyscreen.sh with DISPLAY_ROTATE=0 (pellcorp's default
+display_rotate: 3 is for the K1 and is sideways here).
+Log: /usr/data/logs/grumpyscreen.log.
+Touch driver is stock (app_startup.sh insmod: actrue 0-4096, y_flip=1).
+Calibration done on screen on first start, saved in
+/usr/data/grumpyscreen/calibration.json. Upright, touch working.
+Update: download the new release, gunzip -c | tar -xf - -C /usr/data
+(calibration.json is not in the tarball, so it is kept).
+Power-cycle test (2026-10-17): passed with the legacy-NaN byte at 0x00
+(10-nan-relaxed removed) - the build does not need it.
+
+Screen facts: /dev/fb0 32 bpp, virtual 800x960 (two 800x480 buffers),
+fb rotate 0, backlight /sys/class/backlight/backlight_gpio0 (on/off only).
+CPU: Ingenic X2600 (XBurst II), isa mips32r2/r5, MSA.
+
+History (replaced by grumpy-ff): pellcorp's release is MIPS32r1, FPXX,
+legacy NaN - the X2600 kernel (no ieee754= on the command line) refuses
+it. 2026-10-11 workarounds: 1-byte e_flags NaN2008 patch; kernel byte
+busybox devmem 0x00a130d1 8 1 (kernel 2.0.1; C5: 2.0.5/2.0.6 0x00a130d1,
+2.0.7 0x00b330d1) as startup.d/10-nan-relaxed.sh; touch scale in the
+tsc2007 actrue values. All dropped.
 
 Power key / power-off (5)
 -------------------------
@@ -175,8 +155,9 @@ Steps
  1. [done] Startup script that does 1, 2 and 4 instead of firmwareExe.
  2. [part] Moonraker + web UI done. Klipper is still FlashForge's.
  3. [not needed] Power button / power-off (5) - see below.
- 4. [next] Open-source touchscreen app (6) - GrumpyScreen, see below.
- 5. IFS, load cell, camera, USB, buzzer (7-11) as needed. Clock (12) done.
+ 4. [done] Open-source touchscreen app (6) - GrumpyScreen (grumpy-ff).
+ 5. [next] IFS, load cell, camera, USB, buzzer (7-11) as needed.
+    Clock (12) done.
  6. [done] Stop firmwareExe from starting.
 
 Printer state (2026-10-10)
@@ -198,11 +179,12 @@ Changed on the printer:
   /usr/data/nginx               nginx + nginx.conf (fluidd-ad5x.tar.gz)
   /usr/data/fluidd              Fluidd v1.37.6
   /usr/data/tmp                 nginx temp files
+  /usr/data/grumpyscreen        GrumpyScreen (grumpy-ff release)
 
 startup.sh order: eboard -> Klipper -> network -> clock -> startup.d
-(10-nan-relaxed, 40-moonraker, 45-nginx).
+(40-moonraker, 45-nginx, 70-grumpyscreen).
 Logs: /usr/data/logs/openad5x.log, openad5x/<drop-in>.log,
-      moonraker.log, moonraker.out, nginx-error.log.
+      moonraker.log, moonraker.out, nginx-error.log, grumpyscreen.log.
 
 Startup design (installed 2026-10-11, power-cycle test passed)
 ---------------------------------------------------------------
@@ -214,12 +196,10 @@ Core + drop-ins (mix of our startup.sh and OpenCreator's LoopScript):
                quickly and backgrounds its own long-running program.
                Rename to .off to disable. A failing script does not stop
                the others. Empty folder / spaces in names are fine.
-    10-nan-relaxed.sh  busybox devmem 0x00a130d1 8 1 (kernel package
-                       2.0.1 only; checks 0x00a130d0 = 0x01 and the byte
-                       is 0x00 first)
     40-moonraker.sh    was moonraker_start in startup.sh
     45-nginx.sh        was nginx_start in startup.sh
-    later: 50-usb-automount.sh, 70-grumpyscreen.sh
+    70-grumpyscreen.sh GrumpyScreen, DISPLAY_ROTATE=0 (2026-10-17)
+    later: 50-usb-automount.sh
 Printer paths after the switch (rename free-ad5x -> openad5x):
   /usr/prog/openad5x/startup.sh
   /usr/data/openad5x/startup.d/
