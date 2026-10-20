@@ -24,8 +24,9 @@ Same idea, different so far:
   40-moonraker (/usr/data)     20-msmr (/usr/prog moonrakerDaemon + nginx)
   45-nginx (/usr/data)         20-msmr
   70-grumpyscreen (grumpy-ff)  -
+  30-camera (FF mjpg-streamer) 30-camera
   -                            05-entfix (Entware /opt), 10-klipper,
-                               30-camera, 99 updater, tunneled bridge
+                               99 updater, tunneled bridge
   eboard wake (AD5X only)      -
   Ethernet/Wi-Fi/hotspot/      Wi-Fi only
     static, cable watch
@@ -131,6 +132,39 @@ busybox devmem 0x00a130d1 8 1 (kernel 2.0.1; C5: 2.0.5/2.0.6 0x00a130d1,
 2.0.7 0x00b330d1) as startup.d/10-nan-relaxed.sh; touch scale in the
 tsc2007 actrue values. All dropped.
 
+Camera (9)
+----------
+firmwareExe has its own streamer built in (mjpg-streamer code: V4L2
+capture, GET /?action=stream, "Server: MJPG-Streamer/0.2", port 8080,
+camera hot-plug). Its command line for an external
+/usr/prog/mjpg-streamer/bin/mjpg_streamer is dead code - that program is
+in no AD5X package (factory image, 3.1.0 update, rootfs, 3.1.5/3.1.6).
+With firmwareExe stopped there is no camera until we start one.
+
+FlashForge's stock mjpg-streamer (mjpg-streamer.zip from FlashForge):
+Ingenic XBurst2 GCC 7.2.0 / glibc 2.29, flags 0x70001405 (same as
+firmwareExe), own libjpeg 9e, uses the printer's libc/libdl/libpthread.
+Installed unchanged at /usr/prog/mjpg-streamer (2026-10-17, files 644,
+dirs/binaries/.so 755). Its start_webcam.sh / .orig are not used (which
+one is stock is unknown; .orig needs v4l2-ctl, not on the printer).
+
+startup.d/30-camera.sh: firmwareExe's own command without the
+output_file cloud snapshots:
+  LD_LIBRARY_PATH=/usr/prog/mjpg-streamer mjpg_streamer
+    -i "input_uvc.so -d <camera> -r 1280x720 -f 30"
+    -o "output_http.so -w /usr/prog/mjpg-streamer/www --port 8080"
+Camera found by scan: /sys/class/video4linux, driver uvcvideo, index 0
+(index 1 = metadata; skips video2 = felix-vdec, the X2600's decoder).
+Waits for a camera and starts again after an unplug (5 s loop).
+Log: /usr/data/logs/mjpg-streamer.log. The UVCIOC_CTRL_ADD/MAP
+"Inappropriate ioctl" lines are harmless (Logitech extension controls).
+uvcvideo is built into the kernel. Tested camera: Logitech Brio 101.
+nginx: /webcam/ -> 127.0.0.1:8080. moonraker.conf: [webcam printer],
+mjpegstreamer, /webcam/?action=stream, /webcam/?action=snapshot.
+Fluidd shows it (2026-10-18). Power-cycle test (2026-10-18): passed,
+30-camera started at boot, camera /dev/video0, port 8080 up.
+Not used: ustreamer-ff (own ustreamer build, on hold).
+
 Power key / power-off (5)
 -------------------------
 AD5X only has the hard power switch. firmwareExe's power-key code is
@@ -156,8 +190,8 @@ Steps
  2. [part] Moonraker + web UI done. Klipper is still FlashForge's.
  3. [not needed] Power button / power-off (5) - see below.
  4. [done] Open-source touchscreen app (6) - GrumpyScreen (grumpy-ff).
- 5. [next] IFS, load cell, camera, USB, buzzer (7-11) as needed.
-    Clock (12) done.
+ 5. [next] IFS, load cell, USB, buzzer (7, 8, 10, 11) as needed.
+    Camera (9) and clock (12) done.
  6. [done] Stop firmwareExe from starting.
 
 Printer state (2026-10-10)
@@ -180,11 +214,13 @@ Changed on the printer:
   /usr/data/fluidd              Fluidd v1.37.6
   /usr/data/tmp                 nginx temp files
   /usr/data/grumpyscreen        GrumpyScreen (grumpy-ff release)
+  /usr/prog/mjpg-streamer       FlashForge's mjpg-streamer (camera)
 
 startup.sh order: eboard -> Klipper -> network -> clock -> startup.d
-(40-moonraker, 45-nginx, 70-grumpyscreen).
+(30-camera, 40-moonraker, 45-nginx, 70-grumpyscreen).
 Logs: /usr/data/logs/openad5x.log, openad5x/<drop-in>.log,
-      moonraker.log, moonraker.out, nginx-error.log, grumpyscreen.log.
+      moonraker.log, moonraker.out, nginx-error.log, grumpyscreen.log,
+      mjpg-streamer.log.
 
 Startup design (installed 2026-10-11, power-cycle test passed)
 ---------------------------------------------------------------
@@ -196,6 +232,7 @@ Core + drop-ins (mix of our startup.sh and OpenCreator's LoopScript):
                quickly and backgrounds its own long-running program.
                Rename to .off to disable. A failing script does not stop
                the others. Empty folder / spaces in names are fine.
+    30-camera.sh       FlashForge's mjpg-streamer on port 8080 (2026-10-17)
     40-moonraker.sh    was moonraker_start in startup.sh
     45-nginx.sh        was nginx_start in startup.sh
     70-grumpyscreen.sh GrumpyScreen, DISPLAY_ROTATE=0 (2026-10-17)

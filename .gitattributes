@@ -1,0 +1,6 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+# copied to / run on the printer: keep LF on Windows checkouts too
+*.sh text eol=lf
+*.conf text eol=lf
+*.py text eol=lf
