@@ -165,7 +165,11 @@ run_dropins() {
 }
 
 eboard_start
-/usr/prog/klipper/start.sh &
+if [ -x /usr/data/kalico/start.sh ]; then
+	setsid /usr/data/kalico/start.sh > /dev/null 2>&1 < /dev/null &
+else
+	/usr/prog/klipper/start.sh &
+fi
 network_start
 clock_sync &
 run_dropins
