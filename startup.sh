@@ -4,6 +4,8 @@
 CFG=/usr/prog/config/Adventurer5M.json
 WIFI=/usr/prog/wifi
 EBOARD=/dev/ttyS5
+EBOARD_FLASH=/usr/data/kalico-fw/eboard.flash
+IAP=/usr/prog/PROGRAM/control/1.1.1/IAPCommand
 DROPIN_DIR=/usr/data/openad5x/startup.d
 DROPIN_LOGS=/usr/data/logs/openad5x
 
@@ -31,6 +33,19 @@ eboard_start() {
 			log "eboard: no Ready, application already running"
 			exec 3<&-
 			return 0
+		fi
+		# one-time flash: the bootloader only accepts IAPCommand while it waits here
+		if [ -f "$EBOARD_FLASH" ]; then
+			hex=$(cat "$EBOARD_FLASH")
+			rm -f "$EBOARD_FLASH"
+			exec 3<&-
+			mkdir -p $DROPIN_LOGS
+			log "eboard: flashing $hex"
+			$IAP "$hex" $EBOARD > $DROPIN_LOGS/eboard-flash.log 2>&1
+			log "eboard: IAPCommand exit $?"
+			stty -F $EBOARD 115200 cs8 -parenb -cstopb -crtscts clocal raw -echo
+			exec 3<>$EBOARD
+			continue
 		fi
 		printf '\101' >&3
 		j=0
