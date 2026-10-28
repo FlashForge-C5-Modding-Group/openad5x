@@ -1,0 +1,106 @@
+site_name: OpenAD5X
+site_description: Open-source software for the FlashForge AD5X. Klipper (Kalico), Fluidd, Moonraker and the IFS multi-colour feeder running through AFC.
+repo_url: https://github.com/FlashForge-C5-Modding-Group/openad5x
+repo_name: FlashForge-C5-Modding-Group/openad5x
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - navigation.instant
+    - toc.follow
+    - content.action.edit
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - content.tooltips
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/FlashForge-C5-Modding-Group
+      name: FlashForge-C5-Modding-Group on GitHub
+
+copyright: OpenAD5X is a community project, not affiliated with FlashForge.
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - abbr
+  - pymdownx.snippets
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installer: installer.md
+  - Technical Reference:
+    - Architecture: architecture.md
+    - MCU development: mcu-development.md
+    - IFS:
+      - Overview: ifs/index.md
+      - Stock host flows: ifs/STOCK_SPEC_HOST.md
+      - Stock IFS firmware: ifs/STOCK_SPEC_IFS.md
+      - Stock load wizard: ifs/STOCK_LOAD_WIZARD.md
+      - Stock feed acceleration: ifs/STOCK_FEED_ACCEL.md
+      - Stock motor drive: ifs/STOCK_MOTOR_DRIVE.md
+      - Stock sensor timing: ifs/STOCK_ADC_TIMING.md
+      - Stock stall and LEDs: ifs/STOCK_STALL_LED.md
+      - Stock release behaviour: ifs/STOCK_HOST_RELEASE.md
+      - Motor specification: ifs/IFS_MOTOR_SPEC.md
+    - Research:
+      - Host (Kalico on the AD5X): research/host.md
+      - Host plan: research/host-plan.md
+      - Bed load cell: research/loadcell.md
+      - firmwareExe: research/firmwareexe.md
+  - Project:
+    - Project layout: project-layout.md
+    - Status and roadmap: status-and-roadmap.md
