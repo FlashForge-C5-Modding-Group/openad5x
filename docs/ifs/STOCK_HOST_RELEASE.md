@@ -1,6 +1,6 @@
 # Stock firmwareExe: when does the host stop/release the IFS feed motor
 
-Source: Ghidra static analysis of firmwareExe (read-only). Addresses are function entry points.
+Source: Ghidra static analysis of the stock `firmwareExe`. Addresses are function entry points.
 Wire format: `F<cmd> C<chn> L<len> S<speed>`; status reply is parsed by splitting on `[: ]`, field 3 = state (5 = move done, 0x7f = error, 0x7e = busy/timeout). All IFS traffic goes through `SerialObject::sendCmdToUart4` (005e3230), mutex-serialised.
 
 ## 1. Every F112 sender (the only literal "F112" refs)

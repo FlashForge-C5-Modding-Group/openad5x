@@ -1,6 +1,6 @@
 # Stock AD5X IFS firmware 3.0.7: behaviour spec
 
-Source: `ifs.bin` (41168 B, base 0x08010000, N32G455), `ifs.c` decompile, a Ghidra headless run on a COPY of the project (jump-table case bodies at 0x08012e3e decompiled and the whole app disassembled with literal pools resolved), `ram_init.bin`, NOTES.md, STOCK_MOTOR_DRIVE.md, STOCK_HOST_RELEASE.md. Nothing was run on the printer. "not found" = looked for, absent. "inferred" = from code reading, not observed on hardware. Motor register init (TMC writes, EN, planner constants) is in STOCK_MOTOR_DRIVE.md and is not repeated.
+Source: the stock `ifs.bin` (41168 B, base 0x08010000, N32G455): the Ghidra decompile (jump-table case bodies at 0x08012e3e decompiled and the whole app disassembled with literal pools resolved), its initial RAM image, [Stock IFS firmware](stock-firmware.md), [Stock motor drive](STOCK_MOTOR_DRIVE.md) and [Stock host release](STOCK_HOST_RELEASE.md). Nothing was run on the printer. "not found" = looked for, absent. "inferred" = from code reading, not observed on hardware. Motor register init (TMC writes, EN, planner constants) is in STOCK_MOTOR_DRIVE.md and is not repeated.
 
 Addresses `FUN_xxxxxxxx` are Ghidra names of the function entry. RAM addresses are 0x2000xxxx.
 
@@ -29,7 +29,7 @@ Addresses `FUN_xxxxxxxx` are Ghidra names of the function entry. RAM addresses a
 
 ### 1.1 Link (host side `/dev/ttyS4`)
 - USART1 PA9/PA10, 115200, word length 8, 1 stop, no parity (`FUN_080142b4`: baud 0x1c200, other fields 0, mode 0x0c). RS485 direction PA11: high = transmit, low = receive (idle low).
-- Flashing (bootloader) uses 8E1 per NOTES, the app link is 8N1 here.
+- Flashing (bootloader) uses 8E1 per [Kalico firmware on the IFS](kalico-firmware.md#flashing), the app link is 8N1 here.
 
 ### 1.2 Receive path (framing)
 1. `vec_53` fires on USART IDLE (flag 0x424). It reads the DMA remaining count, n = 200 - remaining. **If n < 3 the burst is discarded** (buffer cleared, nothing queued). Otherwise each byte is pushed to the 200-byte ring buffer (0x20005de4, `FUN_080149b0`), the DMA buffer is cleared (`FUN_08010202`) and re-armed for 200 bytes.
@@ -165,7 +165,7 @@ Both TMC reply ISRs compare the GCONF reply low byte with 0xdc. A mismatch sets 
 
 ### 3.1 Sampling
 Main loop counter reaches 1001 then one blocking ADC conversion per input (`FUN_080110dc(adc, channel)`) is taken. Every input keeps a counter of 1..20 accumulated samples; on the 21st sample the average (sum/20) is stored and the counter restarts (the 21st sample is discarded). Conversion time and main-pass period were not measured (not found), so the averaging period is "21 x 1001 main passes".
-Inputs (idx = slot-1): silk idx0 ADC2 ch6 (PC0), idx1 ADC2 ch8 (PC2), idx2 ADC4 ch3 (PB12), idx3 ADC4 ch4 (PB14); speed idx0 ADC2 ch7 (PC1), idx1 ADC2 ch9 (PC3), idx2 ADC3 ch5 (PB13), idx3 ADC4 ch5 (PB15). The connector number to slot assumption is from NOTES (to verify).
+Inputs (idx = slot-1): silk idx0 ADC2 ch6 (PC0), idx1 ADC2 ch8 (PC2), idx2 ADC4 ch3 (PB12), idx3 ADC4 ch4 (PB14); speed idx0 ADC2 ch7 (PC1), idx1 ADC2 ch9 (PC3), idx2 ADC3 ch5 (PB13), idx3 ADC4 ch5 (PB15). The connector number to slot assumption is an assumption (to verify).
 
 ### 3.2 Silk (filament present) per channel, flags 0x200001bf[i] (reset value 1,1,1,1), averages 0x20000134[i]
 - avg < 900 or avg > 3100 -> flag = 1. On a 0 -> 1 change the insert bit is set: 0x200001d0 \|= 1<<i.
@@ -194,7 +194,7 @@ Reset (`Reset_Handler` 0x080101ac) -> SystemInit `FUN_08012428` (HSE, PLL, 144 M
 3. `FUN_080164a4` (motor outputs off, planner reset), then the main loop.
 No delays, no homing, no self test, no reply sent at boot. FFS_state = 0.
 
-F37 (0x0801378a): `FUN_08011fe0(0x0800D000, 0xFFFFFFFF)` = unlock flash, clear status 0x35, erase the page 0x0800D000, program word 0xFFFFFFFF, lock; then FAULTMASK set, DSB, `SCB->AIRCR = 0x05FA0004 | (AIRCR & 0x700)`, loop. No reply. The bootloader (0x08000000-0x0800FFFF) is not in this file; it sees the erased flag word and waits for the upload. Bootloader protocol (XMODEM-like, 115200 8E1, `C` sync, 1030-byte frames, CRC16 0x1021, ACK 0x06 / NAK 0x15, EOT 0x04, written from 0x08010000, only listens right after power-up or the flag state) is from NOTES.md/IFSCommand (not re-derived here). How the bootloader validates the app (SP check etc.) is not found.
+F37 (0x0801378a): `FUN_08011fe0(0x0800D000, 0xFFFFFFFF)` = unlock flash, clear status 0x35, erase the page 0x0800D000, program word 0xFFFFFFFF, lock; then FAULTMASK set, DSB, `SCB->AIRCR = 0x05FA0004 | (AIRCR & 0x700)`, loop. No reply. The bootloader (0x08000000-0x0800FFFF) is not in this file; it sees the erased flag word and waits for the upload. Bootloader protocol (XMODEM-like, 115200 8E1, `C` sync, 1030-byte frames, CRC16 0x1021, ACK 0x06 / NAK 0x15, EOT 0x04, written from 0x08010000, only listens right after power-up or the flag state) is from [Kalico firmware on the IFS](kalico-firmware.md#flashing) (not re-derived here). How the bootloader validates the app (SP check etc.) is not found.
 
 ## 5. Things the firmware does without host commands
 Everything else in the app is passive:
@@ -207,6 +207,6 @@ No replies are ever sent unasked, no periodic TMC polling, no watchdog, no timeo
 ## 6. Not found / unverified
 - Time per main-loop pass and ADC conversion (so sensor averaging period in ms).
 - Which host command first homes the selector at printer start.
-- Bootloader internals beyond F37 and the NOTES protocol.
+- Bootloader internals beyond F37 and the flashing protocol.
 - Physical meaning of D4/D5 vs PB5/PB6.
 - Planner block splitting limits for very long L (the F10 L1000 used by the host is accepted by the host flow; exact limits not analysed).

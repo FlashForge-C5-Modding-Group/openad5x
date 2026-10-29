@@ -83,10 +83,31 @@ nav:
   - Getting Started:
     - Installer: installer.md
   - Technical Reference:
-    - Architecture: architecture.md
-    - MCU development: mcu-development.md
+    - Architecture:
+      - Overview: architecture/index.md
+      - Startup: architecture/startup.md
+      - Files on the printer: architecture/printer-layout.md
+      - Network: architecture/network.md
+      - Touchscreen: architecture/touchscreen.md
+      - Camera: architecture/camera.md
+      - Power key: architecture/power.md
+      - Entware and Python: architecture/entware-python.md
+      - Packages and builds: architecture/packages.md
+      - Differences from OpenCreator: architecture/opencreator.md
+    - MCU development:
+      - Overview: mcu/index.md
+      - Boards, pins and power: mcu/boards.md
+      - Clock: mcu/clock.md
+      - Flashing and test builds: mcu/flashing.md
+      - Kalico build and kiln-os: mcu/kalico-build.md
+      - Host side: mcu/host.md
+      - Open items: mcu/open-items.md
     - IFS:
       - Overview: ifs/index.md
+      - Hardware: ifs/hardware.md
+      - Stock IFS firmware: ifs/stock-firmware.md
+      - Kalico firmware: ifs/kalico-firmware.md
+      - IFS in AFC: ifs/afc-integration.md
       - Stock host flows: ifs/STOCK_SPEC_HOST.md
       - Stock IFS firmware: ifs/STOCK_SPEC_IFS.md
       - Stock load wizard: ifs/STOCK_LOAD_WIZARD.md
@@ -98,8 +119,8 @@ nav:
       - Motor specification: ifs/IFS_MOTOR_SPEC.md
     - Research:
       - Host (Kalico on the AD5X): research/host.md
-      - Host plan: research/host-plan.md
       - Bed load cell: research/loadcell.md
+      - Load cell in Kalico: research/loadcell-kalico.md
       - firmwareExe: research/firmwareexe.md
   - Project:
     - Project layout: project-layout.md

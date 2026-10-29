@@ -1,8 +1,6 @@
-# Stock firmwareExe (3.1.6): filament change sequence
+# firmwareExe: filament change
 
-- `extracted\software-3.1.6\firmwareExe`, MIPS32 ELF, not stripped, debug info. Source path strings `../ad5x/serial/SerialObject.cpp`
-- Ghidra 12.2 headless (`run.sh`): first run imports + analyses into `~/fwexe-proj` (~3 min), later runs `-process -noanalysis` with a function regex, output file and data addresses to dump (`data.txt`)
-- `firmwareExe.c`, `firmwareExe2.c`, `firmwareExe3.c`: decompiles of the functions below
+What the stock `firmwareExe` 3.1.6 does for a filament change, from its decompile, and how the AFC settings map to it. Source paths in the binary are `../ad5x/serial/SerialObject.cpp`. It is a MIPS32 ELF, not stripped, with debug info.
 
 ## Settings (`/usr/data/config/Adventurer5M.json`)
 
@@ -57,7 +55,7 @@ IFS: F11 C<chn> <speed>  and  G1 E-<UnloadESpace> F<UnloadSpeed>  (together)
 - brush: `G1 Y220 F3000`, `G1 X78 F12000`, `G1 Y{y + 229}`, `X65`, `X73`, `X65`, `X73`, `X65`, `X78`, `G1 Y220`, `M400`
 - end: IFS `F23 C<chn>`
 
-## AFC mapping (`ifs/AFC_Macro_Vars.cfg`, `ifs/AFC_Hardware-IFS.cfg`)
+## AFC mapping (`AFC/AFC_Macro_Vars.cfg`, `AFC/AFC_Hardware-IFS.cfg`)
 
 | AFC | Value | Stock |
 |---|---|---|
@@ -75,7 +73,7 @@ IFS: F11 C<chn> <speed>  and  G1 E-<UnloadESpace> F<UnloadSpeed>  (together)
 
 - Not mapped yet: flush volume from colours (`calc_flush_vol`), fan speeds per filament type, IFS-side feed lengths (AFC uses its own lane distances, to calibrate)
 
-## Cut vs AFC_CUT (checked 2026-10-24)
+## Cut: stock against AFC_CUT
 
 - `checkCrotchCutting(chn)`: IFS `F24 C<chn>` (turn the selector to that lane and clamp it), poll until the IFS state is 5 (ready); state 0x7f (homing error) -> `F15` re-home and retry. AFC does the same with `select_lane` before every lane move, nothing extra needed
 - AFC_CUT with our vars vs stock:

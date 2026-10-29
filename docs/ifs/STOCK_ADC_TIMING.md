@@ -1,6 +1,6 @@
 # Stock IFS v3.0.7: lane sensor ADC sampling timing
 
-Read-only reverse engineering of `ifs.bin` (base 0x08010000), `ifs_v.c` decompile, plus a Ghidra disassembly listing from a COPY of ~/ifs-re/proj (`ListRange.java`, no analysis, nothing written to the original project). Nothing was run on a printer. [V] = verified in code, [I] = inferred from code plus datasheet/SDK knowledge, [U] = uncertain/assumed.
+Static analysis of the stock `ifs.bin` (base 0x08010000): the Ghidra decompile plus a disassembly listing. Nothing was run on a printer. [V] = verified in code, [I] = inferred from code plus datasheet/SDK knowledge, [U] = uncertain/assumed.
 
 ## 1. ADC clock tree and conversion
 

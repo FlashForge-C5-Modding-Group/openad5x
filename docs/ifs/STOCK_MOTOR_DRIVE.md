@@ -1,6 +1,6 @@
 # Stock IFS motor drive vs our Kalico config (feed overheat check)
 
-Sources: ifs.c (Ghidra decompile), ifs.bin (base 0x08010000), ram_init.bin, Ghidra headless on a COPY of the project (original untouched), kalico-ad5x `klippy/extras/tmc2209.py`, `tmc2130.py`, `tmc.py`. Nothing was run against the printer.
+Sources: the Ghidra decompile of the stock `ifs.bin` (base 0x08010000) and its initial RAM image, and kalico-ad5x `klippy/extras/tmc2209.py`, `tmc2130.py`, `tmc.py`. Nothing was run against the printer.
 
 ## 1. TMC register writes (stock)
 
@@ -29,11 +29,11 @@ Selector (PB1), state machine `FUN_0801900c`:
 
 Feed (PA5), via enable mask bytes 0x20000436 (requested) / 0x20000437 (applied), `FUN_0801874c` / `FUN_080186a0`:
 - Bit set -> PA5 low (enabled). Set when a planned block has steps on the axis (`FUN_08016540` -> `FUN_08018678`).
-- F10 (feed, states 10/0x15/0x20/0x2b -> 0xb/0x16/0x21/..) runs the move, waits for the queue to empty (`FUN_08016374`==0), goes to state 5 (ready). It does NOT release EN. PA5 stays low until F112 or an F11 finishing. Whether firmwareExe sends F112 after every F10 is host side, not in this binary (NOTES says it does after the toolhead sensor trips).
+- F10 (feed, states 10/0x15/0x20/0x2b -> 0xb/0x16/0x21/..) runs the move, waits for the queue to empty (`FUN_08016374`==0), goes to state 5 (ready). It does NOT release EN. PA5 stays low until F112 or an F11 finishing. Whether firmwareExe sends F112 after every F10 is host side, not in this binary (the host does after the toolhead sensor trips).
 - F11 (unload, states 0xe/0x19/0x24/0x2f): ends in state 0x10/0x1b/.. = `FUN_08015d28` = planner stop + PA5 high + PB1 high. So F11 always releases the feed at the end.
 - F112 (`FUN_08015d28`): PA5 high and PB1 high, state 5. Also called on GCONF mismatch.
 - No idle timeout, no timer-based disable found anywhere. Stall/over-temp never stops the motors (F14/F40 only report).
-- Standstill current: IHOLD=0 with IHOLDDELAY=10 and TPOWERDOWN=128 (~2.8 s at standstill, then ramp down). Per TMC2209 scale (CS+1)/32 that is 1/32 of full scale = about 0.014 A rms if the 0.5 ohm resistors are the sense resistors. Freewheel field = 0. How the MS35776 clone treats IHOLD=0: NOT verified (NOTES shows the idle feed does brake a strand, so it is not zero current).
+- Standstill current: IHOLD=0 with IHOLDDELAY=10 and TPOWERDOWN=128 (~2.8 s at standstill, then ramp down). Per TMC2209 scale (CS+1)/32 that is 1/32 of full scale = about 0.014 A rms if the 0.5 ohm resistors are the sense resistors. Freewheel field = 0. How the MS35776 clone treats IHOLD=0: NOT verified (the idle feed does brake a strand, so it is not zero current).
 - Motors are therefore left energized at standstill in stock only on the feed after F10 until F112, at IHOLD 0.
 
 ## 3. Feed motion profile (stock)

@@ -1,6 +1,6 @@
 # Stock IFS odometer (stall), host E0109 monitor, LEDs
 
-Sources: `ifs.bin` / `ifs.c` (Ghidra project ~/ifs-re/proj, read-only runs), `firmwareExe` (~/fwexe-proj, read-only decompile of `SerialObject::*`, `Print::*`, `Status::*`, `Config::*`), ram_init.bin. Nothing was run on a printer. "not found" = looked for, absent. "inferred" = from code reading only.
+Sources: the Ghidra decompile of the stock `ifs.bin`, the decompile of `firmwareExe` (`SerialObject::*`, `Print::*`, `Status::*`, `Config::*`) and the IFS initial RAM image. Nothing was run on a printer. "not found" = looked for, absent. "inferred" = from code reading only.
 
 ## A. IFS firmware: speed (odometer) sensors
 
@@ -12,7 +12,7 @@ Sources: `ifs.bin` / `ifs.c` (Ghidra project ~/ifs-re/proj, read-only runs), `fi
 - Dead code (no readers): per-lane flags at 0x2000015e/0x20000162 (outside 1397..2636 / <1200 / >2800 tests).
 
 ### A2. Movement latch (SysTick 50 Hz = 20 ms, `vec_15` 0x080121b2 -> `FUN_080121bc`)
-SysTick reload = SystemCoreClock/50 - 1 (`FUN_08015834`); SystemCoreClock = 144000000 (ram_init 0x20000488 = 0x08954400), so exactly 20 ms.
+SysTick reload = SystemCoreClock/50 - 1 (`FUN_08015834`); SystemCoreClock = 144000000 (initial RAM 0x20000488 = 0x08954400), so exactly 20 ms.
 Per lane i (independent, same code x4), state `k` = byte 0x2000021c[i], ring `buf` = uint16[50] (0x2000139c, 0x20001400, 0x20001464, 0x200014c8), flag = byte 0x200001d9[i], counter = uint32 0x2000152c[i]:
 
 ```
@@ -35,7 +35,7 @@ tick(i):
 - Quiet window: flag cleared at the tick where k == 49, i.e. 50 samples after the baseline = 1.00 s; then one extra reset tick, so full quiet cycle = 51 ticks = 1.02 s. "One quiet second" is right: flag = 1 stays until a full window passes with every sample within < 15 counts of its baseline.
 - Flag meaning: 1 = filament MOVING (naming "stall" is misleading). Counter = number of movement windows.
 - Not gated by lane selection, motor state or any command.
-- Counter clear: only the feed state machine (`FUN_0801900c` cases for F10 start: counter[0] in states 10 and 0xe; counters [1] and [2] in the following state pairs (ifs.c lines 8154/8195/8242); counters [2]/[3] also via `DAT_08019bf8`+8/+0xc at lines 8283/8330/8371; exact state-to-command mapping per lane not re-derived). Flags are never cleared except by the quiet window. Not cleared by F14/F40 reads. RAM init = 0.
+- Counter clear: only the feed state machine (`FUN_0801900c` cases for F10 start: counter[0] in states 10 and 0xe; counters [1] and [2] in the following state pairs; counters [2]/[3] also via `DAT_08019bf8`+8/+0xc; exact state-to-command mapping per lane not re-derived). Flags are never cleared except by the quiet window. Not cleared by F14/F40 reads. RAM init = 0.
 
 ### A3. Reply fields
 - F13: `F13 ok. FFS_state: %d silk_state: %d chan: %d ffs_channels_insert: %d stall_state: %d jinsi_GCONF: ... qiehuan_GCONF: ...\r\n`. `stall_state` = byte 0x200000da = f[3]<<3 | f[2]<<2 | f[1]<<1 | f[0] from the flags 0x200001d9[0..3] (bit i = lane i+1; 1 = moving). `silk_state` = same from silk flags 0x200001bf (1 = filament present at the lane sensor).

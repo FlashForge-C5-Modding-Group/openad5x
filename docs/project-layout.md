@@ -13,7 +13,7 @@ OpenAD5X is split over a few repositories in the [FlashForge-C5-Modding-Group](h
 
 ## What `AD5X-FS` holds
 
-- `fs/usr/data/config-ad5x/`: `printer.base.cfg`, `printer.cfg`, `ad5x_home.cfg`, `ad5x_print.cfg`, `loadcell.cfg`, `moonraker.conf`, and `AFC/` with `AFC.cfg`, `AFC_Hardware-IFS.cfg`, `AFC_Macro_Vars.cfg` and `ifs_macros.cfg`
+- `fs/usr/data/config/`: `printer.base.cfg`, `printer.cfg`, `ad5x_home.cfg`, `ad5x_print.cfg`, `loadcell.cfg`, `moonraker.conf`, and `AFC/` with `AFC.cfg`, `AFC_Hardware-IFS.cfg`, `AFC_Macro_Vars.cfg` and `ifs_macros.cfg`
 - `fs/usr/data/opencreator/afc-ifs/`: `AFC_IFS.py` (the IFS unit for AFC) and `ad5x_filament_sensor.py`
 - `fs/usr/data/opencreator/mcu-flash/`: `ifs_capture.py`, `ifs_catch.py`, `ifs_flash.sh` and `ifs_probe.py`, used to flash the IFS MCU over its serial port
 - `fs/usr/data/opencreator/loadcell/loadcell.sh`: bed load cell commands used by `loadcell.cfg`

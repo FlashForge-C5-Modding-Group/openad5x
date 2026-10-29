@@ -30,7 +30,7 @@ OpenAD5X replaces FlashForge's closed programs on the AD5X with open-source ones
 
     How the stock IFS and host behave, decoded from the stock firmware, and how ours matches.
 
-- **[Architecture](architecture.md)**
+- **[Architecture](architecture/index.md)**
 
     The plan: what firmwareExe does and how each part is replaced.
 
