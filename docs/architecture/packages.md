@@ -35,10 +35,10 @@ Where the outside parts of each build come from:
 | Input | Source |
 |---|---|
 | Moonraker source | `https://codeload.github.com/Arksine/moonraker/tar.gz/<MR_COMMIT in build.py>` |
-| Moonraker environment (pure-Python packages) | Simple AF's `k1/moonraker-env.tar.gz` (from `pellcorp/creality`) |
+| Moonraker environment (pure-Python packages) | Simple AF's `k1/moonraker-env.tar.gz` |
 | `sqlite3`, `libsodium`, nginx, `mime.types` | `F001_V1.2.3.23.ingenic`, file `images/rootfs.squashfs` (unpacked with 7-Zip) |
 | Fluidd | A Fluidd release (v1.37.6 used) |
-| GrumpyScreen | The upstream release that `grumpy-ff` rebuilds (`pellcorp/grumpyscreen`) |
+| GrumpyScreen | The upstream GrumpyScreen release that `grumpy-ff` rebuilds |
 
 ## Building the packages
 
