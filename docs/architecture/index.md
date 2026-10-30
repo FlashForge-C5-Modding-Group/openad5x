@@ -47,12 +47,12 @@ The printer does not work without these.
 
 | Step | Status |
 |---|---|
-| Startup script that does jobs 1, 2 and 4 instead of `firmwareExe` | <span class="oc-status ok">Done</span> |
-| Moonraker and the web UI; Kalico at boot (`/usr/data/kalico/start.sh`, stock Klipper if it is not executable) | <span class="oc-status ok">Done</span> |
+| Startup script that does jobs 1, 2 and 4 instead of `firmwareExe` | <span class="oc-status ok">Done</span> on the previous boot; the [new boot](startup.md) is written, not yet tested |
+| Moonraker and the web UI; Kalico at boot (`10-klipper.sh`; the previous boot used `/usr/data/kalico/start.sh`) | <span class="oc-status ok">Done</span> |
 | Open-source touchscreen app (GrumpyScreen, built by `grumpy-ff`) | <span class="oc-status ok">Done</span> |
 | IFS and bed load cell | <span class="oc-status ok">Done</span>, see [IFS](../ifs/index.md) and [load cell](../research/loadcell.md) |
 | Camera and clock | <span class="oc-status ok">Done</span> |
-| Stop `firmwareExe` from starting | <span class="oc-status ok">Done</span> |
+| Stop `firmwareExe` from starting | <span class="oc-status ok">Done</span> on the previous boot; the new boot replaces it with the `firmwareExe` script |
 | Power button and power-off | Not needed, see [Power key](power.md) |
 | USB stick, buzzer | As needed |
 

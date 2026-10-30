@@ -23,7 +23,7 @@ The release contains `grumpyscreen`, the upstream default `grumpyscreen.cfg` (un
 | | |
 |---|---|
 | Install path | `/usr/data/grumpyscreen` (v2.0.0-323-ff when installed) |
-| Started by | `startup.d/70-grumpyscreen.sh` with `DISPLAY_ROTATE=0` |
+| Started by | `startup/scripts/40-grumpyscreen.sh` with `DISPLAY_ROTATE=0` |
 | Rotation | Upstream's default `display_rotate: 3` is for the K1 and is sideways on the AD5X, so rotation 0 is used |
 | Log | `/usr/data/logs/grumpyscreen.log` |
 | Touch driver | Stock (`app_startup.sh` loads it with `actrue` 0 to 4096 and `y_flip=1`) |

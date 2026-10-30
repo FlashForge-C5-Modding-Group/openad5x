@@ -4,13 +4,13 @@ The IFS runs as a unit of [AFC](https://github.com/ArmoredTurtle/AFC-Klipper-Add
 
 ## Installing AFC on the printer
 
-AFC was copied from the upstream repository (commit `5ea84ea`) to `/usr/data/AFC-Klipper-Add-On`, with LF line endings and no `.git`. The upstream `install-afc.sh` expects a standard Klipper host, so its steps were done by hand:
+AFC is the upstream repository at commit `5ea84ea` (full hash `5ea84ea6fab75b9b49db090f309154d1e52272bb`), in `/usr/data/AFC-Klipper-Add-On` with LF line endings and no `.git`. The upstream `install-afc.sh` expects a standard Klipper host, so its steps are done by the installer's `install-afc.sh` (a shallow fetch of that commit, then the macros) and by `10-klipper.sh` at every start:
 
-- `extras/*.py` (except `__init__.py`, 31 files) is symlinked into `/usr/data/kalico/klipper/klippy/extras/`.
-- `/usr/data/ad5x-afc/AFC_IFS.py` and `AFC_Hardware-IFS.cfg` are added, and `AFC_IFS.py` is symlinked into `klippy/extras/`.
-- `/usr/data/config/kalico/AFC/` holds `AFC.cfg`, `AFC_Macro_Vars.cfg`, `macros/`, an empty `mcu/` and `AFC_Hardware-IFS.cfg`.
+- `extras/*.py` (except `__init__.py`, 31 files) is symlinked into `/usr/data/openad5x/klipper/klipper/klippy/extras/` at every Klippy start.
+- `AFC_IFS.py` and `ad5x_filament_sensor.py` (from `AD5X-FS`, `fs/usr/data/openad5x/afc-ifs/`) are symlinked into `klippy/extras/` the same way.
+- `/usr/data/openad5x/klipper/config/AFC/` holds `AFC.cfg`, `AFC_Macro_Vars.cfg`, `AFC_Hardware-IFS.cfg`, `ifs_macros.cfg` (from `AD5X-FS`), and `macros/` (copied from AFC's `config/macros`) and an empty `mcu/`.
 - `[include AFC/*.cfg]` goes in `printer.cfg` above the `SAVE_CONFIG` block.
-- `VarFile` in `AFC.cfg` is `/usr/data/config/kalico/AFC/AFC.var`. The message `AFC.var.unit not found` on the first start is normal: AFC creates it on the first save.
+- `VarFile` in `AFC.cfg` is `/usr/data/openad5x/klipper/config/AFC/AFC.var`. The message `AFC.var.unit not found` on the first start is normal: AFC creates it on the first save.
 
 Things to know:
 

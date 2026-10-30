@@ -27,3 +27,7 @@ For Wi-Fi and Ethernet:
 The `eth0` MAC address is set earlier by `app_startup.sh`, from `/usr/prog/MAC`.
 
 Adding and saving Wi-Fi networks (`wpa_cli add_network`, `save_config`) is a job for the touchscreen menu, not for startup.
+
+## SFTP
+
+Stock dropbear starts `/usr/libexec/sftp-server`, which the read-only root does not have. `06-sftp.sh` copies `/usr/sbin/dropbear` to `/usr/data/openad5x/bin/dropbear-sftp`, changes the one `/usr/libexec/sftp-server` string in the copy to `/opt/libexec/sftp-server` (Entware's, from `openssh-sftp-server`; the same length, so the file size stays the same), bind-mounts the copy over `/usr/sbin/dropbear` and restarts `S50dropbear`. It waits for `/opt` to be mounted, and does nothing if the string is not found. The stock AD5X dropbear has that string once, at offset 220360. Not yet run on a printer.

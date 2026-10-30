@@ -47,6 +47,6 @@ The `kalico-ad5x` `klippy/chelper` folder, copied to `/tmp/chelper-test`, with `
 
 ## At boot
 
-`startup.d/05-entware.sh` sets the NaN byte, bind-mounts `/opt` and runs `/opt/etc/init.d/rc.unslung start`. A power-cycle test passed on 2026-10-23: `/opt` was mounted, gcc was there, and the NaN byte was `0x01`.
+`01-fixnan.sh` sets the NaN byte and `05-entfix.sh` bind-mounts `/opt` and runs `/opt/etc/init.d/rc.unslung start` (the previous boot's `startup.d/05-entware.sh` did both). A power-cycle test with the previous boot passed on 2026-10-23: `/opt` was mounted, gcc was there, and the NaN byte was `0x01`.
 
-The NaN byte is needed again because the old `10-nan-relaxed.sh` was dropped on 2026-10-17 (GrumpyScreen from `grumpy-ff` does not need it), but Entware's binaries do. The byte and the bind mount are lost on reboot, which is why the drop-in sets them.
+The NaN byte is needed again because the old `10-nan-relaxed.sh` was dropped on 2026-10-17 (GrumpyScreen from `grumpy-ff` does not need it), but Entware's binaries do. The byte and the bind mount are lost on reboot, which is why a boot script sets them.

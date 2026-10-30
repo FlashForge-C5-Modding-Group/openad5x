@@ -2,7 +2,10 @@
 
 How Klippy from `kalico-ad5x` is installed on the printer: on Python 3.13 (`/usr/data/python-hf`), talking to the Kalico mainboard and eboard, with Moonraker, Fluidd and GrumpyScreen as before.
 
-FlashForge's own Klipper (`/usr/prog/klipper`) and its config stay untouched, so going back is one switch. The approach follows OpenCreator's `touchscreen-installer` (`payload-template/soc/install-stack.sh`) and `opencreator-fs` (`startup/scripts/10-klipper.sh`): the same Python bundle and the same Kalico-on-host idea.
+FlashForge's own Klipper (`/usr/prog/klipper`) and its config stay untouched, so going back is one switch.
+
+!!! note "Previous layout"
+    This page is the by-hand install on the test printer, with Kalico in `/usr/data/kalico` and its config in `/usr/data/config/kalico`. The installer puts the same things under `/usr/data/openad5x/klipper`; see [Files on the printer](../architecture/printer-layout.md). The approach follows OpenCreator's `touchscreen-installer` (`payload-template/soc/install-stack.sh`) and `opencreator-fs` (`startup/scripts/10-klipper.sh`): the same Python bundle and the same Kalico-on-host idea.
 
 ## What has to be in place first
 

@@ -2,6 +2,9 @@
 
 Moonraker and Fluidd are packaged as two tarballs and built on a PC. The build scripts are in `AD5X-FS`, under `build/`.
 
+!!! note "Previous layout"
+    This is how the test printer got Moonraker and the web UI. The [installer](../installer.md) no longer uses these tarballs: it clones Arksine's Moonraker into `/usr/prog/moonraker` with an environment on `python-hf`, installs Fluidd from its latest release, and uses Entware's `nginx-ssl`. The packages and their tested details are kept here until the new way has run on a printer.
+
 ## Moonraker package (`moonraker-ad5x.tar.gz`)
 
 Moonraker is pinned at commit `abd2026b90` and reports version `v0.9.3-abd2026`. Later commits raise the Python requirements (`3ea83163b0`, `paho-mqtt` 2.1.0 and others) beyond what this Python can use.

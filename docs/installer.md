@@ -1,42 +1,53 @@
-# AD5X installer: what was built (2026-10-24)
+# AD5X installer
 
-The AD5X installs through the OpenCreator stack, as per-machine branches in
-the shared repos ("if C5 then ..., if AD5X then ..."), never as separate AD5X
-copies. The repos merge into one ecosystem; openad5x retires once the live
-printer migrates to LoopScript boot.
+The AD5X installs through the OpenCreator installer (`touchscreen-installer`, branch `ad5x`), as per-machine branches in the shared scripts ("if C5 then ..., if AD5X then ..."), not as separate AD5X copies. Every AD5X-only step is guarded by `OC_MACHINE=AD5X`, and the C5 paths are unchanged.
+
+!!! note "Status"
+    The steps below are written and their pieces were tested on a PC (checksums, the AFC download, the demo mode). A full install has not been run on a printer. The USB launcher at the end was tested on a real AD5X.
 
 ## Repos
 
 | Repo | AD5X work |
 |---|---|
-| touchscreen-installer (branch `ad5x`) | `detect_model` AD5X:0026; `kernel_supported` AD5X = no NAN_ADDR (NaN2008 kernel + userland, never poke the C5 devmem address); entware step skips the devmem when NAN_ADDR empty; `install-stack.sh` clones kalico-ad5x and copies `config/`; `install-loopscript.sh` also overlays `loadcell` and `afc-ifs`; `installgrumpy.sh` AD5X = grumpy-ff tarball (gunzip+tar: the printer's tar cannot decompress); `flash-mcu-firmware.sh` AD5X = verify the `AD5X-kalico-*.tgz` sidecar and stage it in /usr/data for stock's updater (skips when all three boards already report the version) |
-| AD5X-FS (own repo; mirrors opencreator-fs, C5 content stripped, merge later) | `fs/usr/data/config/` (proven printer config, calibration stripped, opencreator paths, moonraker.conf = C5 file + webcam); `opencreator/loadcell/loadcell.sh`, `opencreator/afc-ifs/{AFC_IFS.py,ad5x_filament_sensor.py}`; startup scripts branch on MACHINE (01-fixnan exits, 08-mcu-wake eboard-only table ttyS5 230400 — ttyS4 is the IFS there, ttyS2 has no boot stage; 10-klipper AD5X model case + seeds AFC.var; 40-grumpyscreen DISPLAY_ROTATE=0 + mmu backend afc); firmwareExe skips the coprocessor (file check) and runs openad5x's network_start on AD5X; `mcu-flash/oc-mcu-flash` machine branch (NationsCommand ttyS2 / IFS capture+request+XMODEM ttyS4 / eboard staged in mcu-flash-pending for the power-on window); `mcu-firmware/ad5x/` AD5X-mainboard.bin, AD5X-eboard.hex, AD5X-ifs.hex at kalico-ad5x 8ee87b51 (clean builds, reproducible checksums) |
-| ad5x-update-creator (group repo) | builds `AD5X-kalico-<ver>-<date>.tgz` in FlashForge's stock update format from a reference stock package (vendor tools come from it, not from git) + the mcu-firmware/ad5x images under vendor filenames (AD5X.bin, ADM_App.hex, ifs.hex). Plain tar at both levels: the printer's busybox tar fails on gzip (verified). Round-trips and re-verifies itself |
-| kalico-ad5x | 8ee87b51 on main (half-duplex RS485 IFS + N32 PLL reset), pushed |
+| `touchscreen-installer` (branch `ad5x`) | Model detection (`AD5X`, PID `0026`), the AD5X boot hook (`flashforge_init.sh`), and the per-machine install steps below |
+| `AD5X-FS` | What the installer copies onto the printer: `fs/usr/data/config/`, `fs/usr/data/openad5x/` (boot, AFC and IFS modules, nginx config, flash tools) and `mcu-firmware/ad5x/`. The installer clones it and keeps the clone as `/usr/data/openad5x/opencreator-fs` |
+| `kalico-ad5x` | Kalico with the AD5X MCU support and the half-duplex RS485 IFS; commit `8ee87b51` |
 
-## Why the stock-format firmware package
+## Where files go
 
-Works on a completely stock printer with FlashForge's own updater and tools:
-drop the tgz in /usr/data, power-cycle twice. Boot 1: stock app_startup.sh
-unpacks it, flashforge_init.sh md5-verifies and installs the control part
-with the Update/UpdateM markers. Boot 2: app_startup sees the markers and
-runs the control run.sh — eboard (IAPCommand, power-on bootloader window),
-mainboard (NationsCommand, ROM bootloader), IFS (ifsF37 drops the app to its
-bootloader, then IFSCommand) — the tools clear the markers and it reboots.
-Back to stock = the same flow with an official FlashForge package. The path
-survives conversion: LoopScript only replaces the firmwareExe binary.
+`OC_HOME` is `/usr/data/openad5x` on the AD5X and `/usr/data/opencreator` on the C5. It is set in `payload-template/common/install-helpers.sh`, and in `scripts/install.sh` (which needs it before it knows the machine, so it reads `MACHINE=` from the stock `app_startup.sh`).
 
-`oc-mcu-flash` (AD5X branch) is the live-update path for an already-converted
-machine; the C5 keeps its tgz-at-install / oc-mcu-flash-after split the same
-way.
+## The steps (SoC mode)
+
+| Step | What it does on the AD5X |
+|---|---|
+| `01-install-entware` | Entware on `/usr/data/bin/opt`, mounted on `/opt`. No NaN switch address is passed |
+| `02-install-loopscript` | Clones `AD5X-FS` and copies `startup`, `firmware`, `mcu-flash`, `loadcell`, `afc-ifs` and `nginx` from it into `/usr/data/openad5x`, keeping files you added |
+| `05-install-python` | The hard-float Python 3.13 in `/usr/data/python-hf` |
+| `10-install-stack` | Kalico (`kalico-ad5x`) into `/usr/data/openad5x/klipper/klipper`, a `klippy-env`, and the default `AD5X-FS` config into `…/klipper/config` |
+| `12-install-afc` | The AFC add-on at commit `5ea84ea` into `/usr/data/AFC-Klipper-Add-On`, and AFC's `macros/` and an empty `mcu/` beside `AFC.cfg`. Skipped on the C5 |
+| `15-install-moonraker` | Arksine's Moonraker into `/usr/prog/moonraker`, with an environment on `python-hf` |
+| `17-install-timelapse` | Moonraker timelapse |
+| `20-install-web` | Fluidd (or Mainsail) into `/usr/data/fluidd`, and Entware's `nginx-ssl` with the config in `/usr/data/openad5x/nginx/nginx.conf` (the AD5X has no nginx). Adds a Moonraker update entry for `AD5X-FS` |
+| `30-install-grumpyscreen` | The `grumpy-ff` build of GrumpyScreen, when the touchscreen is chosen |
+| `85-enable-root`, `86-enable-sftp` | Root login and SFTP (the `06-sftp.sh` boot script patches dropbear) |
+| `90-activate-loopscript` | Replaces `firmwareExe` with the `firmwareExe` script, keeping the stock binary as `firmwareExe.stock` |
+| `95-flash-mcu-firmware` | Flashes `mcu-firmware/ad5x` with `ad5x-mcu-flash`; see [Flashing](mcu/flashing.md) |
+
+The boot these steps install is described in [Startup](architecture/startup.md).
+
+## MCU firmware
+
+The earlier plan built a stock-format update package (`ad5x-update-creator`) and let FlashForge's own updater flash it after two power cycles. That path was dropped. The stock `app_startup.sh` (3.1.5 and 3.1.6, read here) only reads `AD5X-*.tgz` from a mounted USB stick, and nothing else found picks up a package staged in `/usr/data`. The installer flashes the repo images directly instead, as the C5 installer does.
 
 ## Still open
 
-- A full install run on real AD5X hardware (the screen/check stages passed
-  on 2026-10-25, see below; Install itself has never been pressed)
-- The live printer's migration from openad5x boot to LoopScript
-- Installer UI (src/) review for machine naming
-- opencreator-fs tests/ not extended for AD5X
+- A full install run on real AD5X hardware (the screen and checks passed on 2026-10-25; Install itself has never been pressed)
+- Moving the test printer from the previous boot to this one
+- `opkg install nginx-ssl` and Entware's paths for nginx, Moonraker building on `python-hf`, `ifsF37` on the stock IFS, and `rdate` for the clock: none of these has run on a printer
+- Merging config changes after an update from Moonraker's update manager (the C5 has `99-opencreator-updater` for this)
+- Whether the printer's AFC macros differ from upstream `5ea84ea`
+- Installer UI (`src/`) review for machine naming
 
 ## USB launcher: AD5X hardware bring-up findings (2026-10-25)
 

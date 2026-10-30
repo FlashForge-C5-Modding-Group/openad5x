@@ -36,7 +36,7 @@ The stock `IFSCommand` protocol is XMODEM-like, 115200 8E1:
 - There are no addresses: the data is written from `0x08010000`.
 - `IFSCommand` flushes after every write and waits 5 s per read. Its `stm32Reboot` and `stm32UpdateFLag` GPIO functions are never called.
 
-The tools are in `AD5X-FS`, under `fs/usr/data/opencreator/mcu-flash/`:
+The tools are in `AD5X-FS`, under `fs/usr/data/openad5x/mcu-flash/`:
 
 | Tool | What it does |
 |---|---|
@@ -44,8 +44,11 @@ The tools are in `AD5X-FS`, under `fs/usr/data/opencreator/mcu-flash/`:
 | `ifs_catch.py <port> <frames> <seconds>` | Sends `C` every 20 ms until the bootloader answers, then the frames and EOT. Works in the power-up window (unplug and replug the IFS cable) or after a bootloader request |
 | `ifs_flash.sh` | Captures the frames, requests the bootloader, and catches it. Klipper must not hold `ttyS4` |
 | `ifs_probe.py <port>` | Passive listen, a Kalico identify at 115200, 230400 and 57600, and a bootloader sync |
+| `ad5x-mcu-flash <folder>` | The installer's flash tool. Flashes the mainboard, the IFS and (staged for the next power cycle) the eboard from a folder of `mcu-firmware/ad5x` images. See [Flashing](../mcu/flashing.md) |
 
 The bootloader only listens for a short window right after the IFS powers up (while the flag at `0x0800D000` is set).
+
+`ad5x-mcu-flash` picks the way by asking Moonraker whether Klippy has an `mcu ifs`. A Kalico IFS gets the request string above. An IFS that still runs FlashForge's firmware gets what FlashForge's control `run.sh` does: `ifsF37 /dev/ttyS4`, then `IFSCommand ifs.hex /dev/ttyS4`. The stock path has not been run on a printer.
 
 The way back to the stock firmware is `IFSCommand /usr/prog/PROGRAM/control/1.1.1/ifs.hex /dev/ttyS4` while the bootloader is waiting. `ifsF37` no longer works once Kalico runs, because Kalico does not know F37.
 

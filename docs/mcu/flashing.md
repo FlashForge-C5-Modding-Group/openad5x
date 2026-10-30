@@ -2,6 +2,16 @@
 
 The three boards are flashed differently. The IFS has its own page: see [Kalico firmware on the IFS](../ifs/kalico-firmware.md).
 
+## Flashing from the installer
+
+The installer flashes the images in `mcu-firmware/ad5x` in the `AD5X-FS` clone (`AD5X-mainboard.bin`, `AD5X-ifs.hex`, `AD5X-eboard.hex`, with `SHA256SUMS` and `VERSION`). `common/flash-mcu-firmware.sh` checks every file against `SHA256SUMS`, skips the step when all three boards already report the commit in `VERSION`, and runs `ad5x-mcu-flash` on the folder:
+
+- the mainboard with `NationsCommand` on `ttyS2`, judged by "verification succeeded" in its log
+- the IFS live, as described in [Kalico firmware on the IFS](../ifs/kalico-firmware.md) (including an IFS that still runs FlashForge's firmware)
+- the eboard by copying the hex to `/usr/data/kalico-fw` and writing its path into `eboard.flash`, so `08-mcu-wake.sh` flashes it at the next real power-on (a reboot is not enough, because the bootloader only waits after power-on)
+
+It refuses to run during a print or a pause, pauses Klippy while it flashes and restarts it afterwards, and logs to `/usr/data/logs/mcu-flash.log`. Not yet run on a printer.
+
 ## Mainboard
 
 `NationsCommand` is the Nations N32 ISP over the chip's ROM bootloader on `/dev/ttyS2`. It toggles BOOT0 and RESET through host GPIOs (`/sys/class/gpio`); the GPIO numbers are not known yet. Recovery is always possible from the host, with no SWD needed.
@@ -21,7 +31,7 @@ Start FlashForge's own Klipper with `/usr/prog/klipper/start.sh`, never with `kl
 
 The eboard has FlashForge's IAP bootloader at `0x08000000` to `0x0800FFFF`, and the app at `0x08010000`.
 
-- **Plain reset:** the bootloader stays in IAP mode, waiting on `ttyS5` at 115200 and printing `Ready` lines. An `A` (`0x41`) is answered with ACK (`0x06`) and it starts the app. This is what `eboard_start()` in `startup.sh` does.
+- **Plain reset:** the bootloader stays in IAP mode, waiting on `ttyS5` at 115200 and printing `Ready` lines. An `A` (`0x41`) is answered with ACK (`0x06`) and it starts the app. This is what `eboard_start` in `08-mcu-wake.sh` does (the previous boot's `startup.sh` did the same).
 - **`BKP->DR1 = 0x1234` and a reset:** the bootloader skips IAP and starts the app at once. The stock code does it as: PWR and BKP clocks on, `PWR_CR.DBP` through bit-band `0x420E0020`, `BKP->DR1 = 0x1234` at `0x40006C00 + 4`, then `NVIC_SystemReset()`. This is used for Klipper's `reset` command.
 - The bootloader does not start an app whose initial stack pointer is `0x20010000` (64 KiB RAM). Stock and kiln-os use `0x20020000`.
 
@@ -32,7 +42,7 @@ The eboard can only be flashed while its bootloader waits after power-on, before
 - `IAPCommand -verbose eboard.hex /dev/ttyS5` against a running app fails with "Can not connect to board, timed-out", and nothing is written.
 - A Klipper `reset` sent to the stock app does not help either: the stock app resets with the `BKP DR1` bypass and goes straight back into the app.
 
-So the flash is done by a boot hook in `startup.sh` (stock FlashForge also flashes the eboard at boot, in `run.sh`).
+So the flash is done by a boot hook in `08-mcu-wake.sh` (stock FlashForge also flashes the eboard at boot, in `run.sh`).
 
 ### The boot hook
 

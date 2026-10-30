@@ -17,7 +17,7 @@ The trigger is a plain `[probe]` on PB3, which the board drives itself. Kalico o
 
 | File | What |
 |---|---|
-| `/usr/data/opencreator/loadcell/loadcell.sh` | Sends the H commands over `ttyS7` at 9600 baud, the way stock `sendCmdToUart7` does: up to 5 tries, a reply is complete when it is longer than 12 bytes and contains `ok` |
+| `/usr/data/openad5x/loadcell/loadcell.sh` | Sends the H commands over `ttyS7` at 9600 baud, the way stock `sendCmdToUart7` does: up to 5 tries, a reply is complete when it is longer than 12 bytes and contains `ok` |
 | `loadcell.cfg` | `[gcode_shell_command loadcell]` (timeout 60, `verbose: True`), the three commands above and the wrappers below |
 
 ## Tare before probing

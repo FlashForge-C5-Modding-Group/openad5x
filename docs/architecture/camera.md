@@ -12,7 +12,7 @@ It is installed unchanged at `/usr/prog/mjpg-streamer` (files 644, directories, 
 
 ## The drop-in
 
-`startup.d/30-camera.sh` runs `firmwareExe`'s own command without the cloud snapshot output file:
+`startup/scripts/30-camera.sh` runs `firmwareExe`'s own command without the cloud snapshot output file:
 
 ```sh
 LD_LIBRARY_PATH=/usr/prog/mjpg-streamer mjpg_streamer \

@@ -30,5 +30,5 @@ Last updated 2026-10-28. Status as seen on a real AD5X.
 | Silk sensor calibration for lanes 1 to 3 | <span class="oc-status partial">Partial</span> | `IFS_SILK_CALIBRATE` exists; lane 4 is done |
 | Toolhead sensor idle value | <span class="oc-status partial">Partial</span> | Reads about 0.32 when empty, close to the 0.30 "present" limit |
 | Colour-based flush volumes | <span class="oc-status plan">Planned</span> | The purge is a fixed 90 mm per flush |
-| Installer support | <span class="oc-status plan">Planned</span> | Through `touchscreen-installer` (branch `ad5x`) |
+| Installer support | <span class="oc-status partial">Partial</span> | Through `touchscreen-installer` (branch `ad5x`): steps written, see [Installer](installer.md); no full install on a printer yet |
 | Documentation site logo and branding | <span class="oc-status plan">Planned</span> | |
