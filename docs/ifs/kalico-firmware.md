@@ -73,7 +73,7 @@ After this, configuring the IFS takes 17 ms with no retransmits, the IFS `mcu_aw
 
 ### Several Klippy instances
 
-Several Klippy instances fighting over the ports leave the IFS in shutdown (`oids already allocated`). Busybox `ps` cuts the command line, so `klippy_restart.sh` matches `/proc/<pid>/cmdline`: it stops every `klippy.py` and starts one.
+Several Klippy instances fighting over the ports leave the IFS in shutdown (`oids already allocated`). Busybox `ps` cuts the command line, so a restart has to match `/proc/<pid>/cmdline`: stop every `klippy.py`, then start one. `startup/commands/restart-klipper.sh` and the `10-klipper.sh` loop do this now.
 
 ## Known problem
 

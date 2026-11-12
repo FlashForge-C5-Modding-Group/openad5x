@@ -41,7 +41,7 @@ Where the outside parts of each build come from:
 | Moonraker environment (pure-Python packages) | Simple AF's `k1/moonraker-env.tar.gz` |
 | `sqlite3`, `libsodium`, nginx, `mime.types` | `F001_V1.2.3.23.ingenic`, file `images/rootfs.squashfs` (unpacked with 7-Zip) |
 | Fluidd | A Fluidd release (v1.37.6 used) |
-| GrumpyScreen | The upstream GrumpyScreen release that `grumpy-ff` rebuilds |
+| GrumpyScreen | The `FlashForge-C5-Modding-Group/grumpyscreen` release |
 
 ## Building the packages
 

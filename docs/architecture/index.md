@@ -49,7 +49,7 @@ The printer does not work without these.
 |---|---|
 | Startup script that does jobs 1, 2 and 4 instead of `firmwareExe` | <span class="oc-status ok">Done</span> on the previous boot; the [new boot](startup.md) is written, not yet tested |
 | Moonraker and the web UI; Kalico at boot (`10-klipper.sh`; the previous boot used `/usr/data/kalico/start.sh`) | <span class="oc-status ok">Done</span> |
-| Open-source touchscreen app (GrumpyScreen, built by `grumpy-ff`) | <span class="oc-status ok">Done</span> |
+| Open-source touchscreen app (GrumpyScreen, the Creator 5 release) | <span class="oc-status ok">Done</span> |
 | IFS and bed load cell | <span class="oc-status ok">Done</span>, see [IFS](../ifs/index.md) and [load cell](../research/loadcell.md) |
 | Camera and clock | <span class="oc-status ok">Done</span> |
 | Stop `firmwareExe` from starting | <span class="oc-status ok">Done</span> on the previous boot; the new boot replaces it with the `firmwareExe` script |
@@ -63,7 +63,7 @@ The printer does not work without these.
 | [Startup](startup.md) | The startup core, the drop-in scripts, logs and the clock |
 | [Files on the printer](printer-layout.md) | What was added or changed on the printer, and where |
 | [Network](network.md) | How stock handles Wi-Fi, Ethernet and the hotspot |
-| [Touchscreen](touchscreen.md) | GrumpyScreen and the grumpy-ff build |
+| [Touchscreen](touchscreen.md) | GrumpyScreen and the AD5X touch set-up |
 | [Camera](camera.md) | The mjpg-streamer set-up |
 | [Power key](power.md) | Why the power key code is not needed |
 | [Entware and Python](entware-python.md) | The compiler and Python 3.13 that Kalico needs on the printer |

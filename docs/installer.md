@@ -3,15 +3,15 @@
 The AD5X installs through the OpenCreator installer (`touchscreen-installer`, branch `ad5x`), as per-machine branches in the shared scripts ("if C5 then ..., if AD5X then ..."), not as separate AD5X copies. Every AD5X-only step is guarded by `OC_MACHINE=AD5X`, and the C5 paths are unchanged.
 
 !!! note "Status"
-    The steps below are written and their pieces were tested on a PC (checksums, the AFC download, the demo mode). A full install has not been run on a printer. The USB launcher at the end was tested on a real AD5X.
+    The full install has been run from the USB stick on the test printer (2026-11-03).
 
 ## Repos
 
 | Repo | AD5X work |
 |---|---|
 | `touchscreen-installer` (branch `ad5x`) | Model detection (`AD5X`, PID `0026`), the AD5X boot hook (`flashforge_init.sh`), and the per-machine install steps below |
-| `AD5X-FS` | What the installer copies onto the printer: `fs/usr/data/config/`, `fs/usr/data/openad5x/` (boot, AFC and IFS modules, nginx config, flash tools) and `mcu-firmware/ad5x/`. The installer clones it and keeps the clone as `/usr/data/openad5x/opencreator-fs` |
-| `kalico-ad5x` | Kalico with the AD5X MCU support and the half-duplex RS485 IFS; commit `8ee87b51` |
+| `AD5X-FS` | What the installer copies onto the printer: `fs/usr/data/config/`, `fs/usr/data/openad5x/` (boot, nginx config, flash tools) and `mcu-firmware/ad5x/`. The installer clones it and keeps the clone as `/usr/data/openad5x/ad5x-fs` |
+| `kalico-ad5x` | Kalico with the AD5X MCU support, the half-duplex RS485 IFS, and the AFC modules, `AFC_IFS.py` and `ad5x_filament_sensor.py` in `klippy/extras` |
 
 ## Where files go
 
@@ -22,14 +22,13 @@ The AD5X installs through the OpenCreator installer (`touchscreen-installer`, br
 | Step | What it does on the AD5X |
 |---|---|
 | `01-install-entware` | Entware on `/usr/data/bin/opt`, mounted on `/opt`. No NaN switch address is passed |
-| `02-install-loopscript` | Clones `AD5X-FS` and copies `startup`, `firmware`, `mcu-flash`, `loadcell`, `afc-ifs` and `nginx` from it into `/usr/data/openad5x`, keeping files you added |
-| `05-install-python` | The hard-float Python 3.13 in `/usr/data/python-hf` |
+| `02-install-loopscript` | Clones `AD5X-FS` and copies `startup`, `firmware`, `moonraker`, `fluidd`, `plugin-manager`, `mcu-flash`, `loadcell` and `nginx` from it into `/usr/data/openad5x`, keeping files you added |
+| `05-install-python` | The hard-float Python 3.13 in `/usr/data/python-hf`: the Creator 5 bundle, from the `AD5X-FS` release `python-hf-3.13-r1` |
 | `10-install-stack` | Kalico (`kalico-ad5x`) into `/usr/data/openad5x/klipper/klipper`, a `klippy-env`, and the default `AD5X-FS` config into `…/klipper/config` |
-| `12-install-afc` | The AFC add-on at commit `5ea84ea` into `/usr/data/AFC-Klipper-Add-On`, and AFC's `macros/` and an empty `mcu/` beside `AFC.cfg`. Skipped on the C5 |
 | `15-install-moonraker` | Arksine's Moonraker into `/usr/prog/moonraker`, with an environment on `python-hf` |
 | `17-install-timelapse` | Moonraker timelapse |
 | `20-install-web` | Fluidd (or Mainsail) into `/usr/data/fluidd`, and Entware's `nginx-ssl` with the config in `/usr/data/openad5x/nginx/nginx.conf` (the AD5X has no nginx). Adds a Moonraker update entry for `AD5X-FS` |
-| `30-install-grumpyscreen` | The `grumpy-ff` build of GrumpyScreen, when the touchscreen is chosen |
+| `30-install-grumpyscreen` | The latest `FlashForge-C5-Modding-Group/grumpyscreen` release, when the touchscreen is chosen, and a Moonraker update entry for it |
 | `85-enable-root`, `86-enable-sftp` | Root login and SFTP (the `06-sftp.sh` boot script patches dropbear) |
 | `90-activate-loopscript` | Replaces `firmwareExe` with the `firmwareExe` script, keeping the stock binary as `firmwareExe.stock` |
 | `95-flash-mcu-firmware` | Flashes `mcu-firmware/ad5x` with `ad5x-mcu-flash`; see [Flashing](mcu/flashing.md) |
@@ -42,11 +41,6 @@ The earlier plan built a stock-format update package (`ad5x-update-creator`) and
 
 ## Still open
 
-- A full install run on real AD5X hardware (the screen and checks passed on 2026-10-25; Install itself has never been pressed)
-- Moving the test printer from the previous boot to this one
-- `opkg install nginx-ssl` and Entware's paths for nginx, Moonraker building on `python-hf`, `ifsF37` on the stock IFS, and `rdate` for the clock: none of these has run on a printer
-- Merging config changes after an update from Moonraker's update manager (the C5 has `99-opencreator-updater` for this)
-- Whether the printer's AFC macros differ from upstream `5ea84ea`
 - Installer UI (`src/`) review for machine naming
 
 ## USB launcher: AD5X hardware bring-up findings (2026-10-25)

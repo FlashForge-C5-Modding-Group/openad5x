@@ -2,13 +2,12 @@
 
 The IFS runs as a unit of [AFC](https://github.com/ArmoredTurtle/AFC-Klipper-Add-On) (Automated Filament Changer). AFC is only the framework: `AFC_IFS.py` makes the IFS behave like the stock firmware. The options, flows and commands are in `config-docs/IFS.md` in `AD5X-FS`. This page records how the unit is set up and why.
 
-## Installing AFC on the printer
+## Where AFC lives
 
-AFC is the upstream repository at commit `5ea84ea` (full hash `5ea84ea6fab75b9b49db090f309154d1e52272bb`), in `/usr/data/AFC-Klipper-Add-On` with LF line endings and no `.git`. The upstream `install-afc.sh` expects a standard Klipper host, so its steps are done by the installer's `install-afc.sh` (a shallow fetch of that commit, then the macros) and by `10-klipper.sh` at every start:
+AFC is not installed separately. Only the parts the IFS uses ship, in our own repos:
 
-- `extras/*.py` (except `__init__.py`, 31 files) is symlinked into `/usr/data/openad5x/klipper/klipper/klippy/extras/` at every Klippy start.
-- `AFC_IFS.py` and `ad5x_filament_sensor.py` (from `AD5X-FS`, `fs/usr/data/openad5x/afc-ifs/`) are symlinked into `klippy/extras/` the same way.
-- `/usr/data/openad5x/klipper/config/AFC/` holds `AFC.cfg`, `AFC_Macro_Vars.cfg`, `AFC_Hardware-IFS.cfg`, `ifs_macros.cfg` (from `AD5X-FS`), and `macros/` (copied from AFC's `config/macros`) and an empty `mcu/`.
+- `kalico-ad5x`, `klippy/extras/`: the 17 AFC modules Klippy loads with this config, unchanged from AFC commit `5ea84ea` (full hash `5ea84ea6fab75b9b49db090f309154d1e52272bb`): `AFC`, `AFC_utils`, `AFC_logger`, `AFC_respond`, `AFC_functions`, `AFC_error`, `AFC_stats`, `AFC_assist`, `AFC_prep`, `AFC_spool`, `AFC_form_tip`, `AFC_lane`, `AFC_stepper`, `AFC_extruder`, `AFC_unit`, `AFC_BoxTurtle`, `AFC_HTLF`. Next to them `AFC_IFS.py` and `ad5x_filament_sensor.py`. The other AFC units and features (hubs, buffers, LEDs, toolchanger, OpenAMS) are left out; a config that adds one of those sections would need its module added.
+- `AD5X-FS`, `fs/usr/data/config/AFC/`: `AFC.cfg`, `AFC_Macro_Vars.cfg`, `AFC_Hardware-IFS.cfg`, `ifs_macros.cfg`, and `macros/` with the only AFC macros the IFS uses, unchanged from `5ea84ea`: `AFC_POOP` (`Poop.cfg`, run by `ADX_POOP`) and `AFC_DISABLE_SKEW` / `AFC_ENABLE_SKEW` (`AFC_macros.cfg`, used by `AFC_POOP`). `AFC_IFS` replaces AFC's park, poop, brush and cut with `ADX_PARK`, `ADX_POOP`, `ADX_BRUSH` and `ADX_CUT`; `ADX_CUT` reads `_AFC_CUT_TIP_VARS` from `AFC_Macro_Vars.cfg`.
 - `[include AFC/*.cfg]` goes in `printer.cfg` above the `SAVE_CONFIG` block.
 - `VarFile` in `AFC.cfg` is `/usr/data/openad5x/klipper/config/AFC/AFC.var`. The message `AFC.var.unit not found` on the first start is normal: AFC creates it on the first save.
 
