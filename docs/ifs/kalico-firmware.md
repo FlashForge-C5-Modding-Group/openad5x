@@ -42,8 +42,6 @@ The tools are in `AD5X-FS`, under `fs/usr/data/openad5x/mcu-flash/`:
 |---|---|
 | `ifs_capture.py <IFSCommand> <hex> <out.frames>` | Runs `IFSCommand` against a fake bootloader on a pty and saves its exact frames |
 | `ifs_catch.py <port> <frames> <seconds>` | Sends `C` every 20 ms until the bootloader answers, then the frames and EOT. Works in the power-up window (unplug and replug the IFS cable) or after a bootloader request |
-| `ifs_flash.sh` | Captures the frames, requests the bootloader, and catches it. Klipper must not hold `ttyS4` |
-| `ifs_probe.py <port>` | Passive listen, a Kalico identify at 115200, 230400 and 57600, and a bootloader sync |
 | `ad5x-mcu-flash <folder>` | The installer's flash tool. Flashes the mainboard, the IFS and (staged for the next power cycle) the eboard from a folder of `mcu-firmware/ad5x` images. See [Flashing](../mcu/flashing.md) |
 
 The bootloader only listens for a short window right after the IFS powers up (while the flag at `0x0800D000` is set).

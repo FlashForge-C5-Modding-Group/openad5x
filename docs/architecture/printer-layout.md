@@ -22,8 +22,7 @@ The layout follows the installer in the `touchscreen-installer` repository (bran
 | `/usr/data/openad5x/klipper/klippy-env` | Python virtual environment on `python-hf`, with system site packages |
 | `/usr/data/openad5x/klipper/config` | The printer config, from `AD5X-FS` (`fs/usr/data/config`) |
 | `/usr/data/openad5x/klipper/logs/printer.log` | Kalico log |
-| `/usr/data/openad5x/klipper/klipper/klippy/extras` | Holds the 17 AFC modules the IFS uses (AFC commit `5ea84ea`), `AFC_IFS.py` and `ad5x_filament_sensor.py`, all part of `kalico-ad5x` |
-| `/usr/data/openad5x/klipper/config/AFC/macros` | `AFC_POOP` and the skew macros, the only AFC macros the IFS uses |
+| `/usr/data/openad5x/klipper/klipper/klippy/extras` | Holds the 16 AFC modules the IFS uses (AFC commit `5ea84ea`), `AFC_IFS.py` and `ad5x_filament_sensor.py`, all part of `kalico-ad5x` |
 | `/usr/data/openad5x/loadcell/loadcell.sh` | Bed load cell board on `ttyS7` (`H1`, `H7`), used by the `LOAD_CELL_TARE`, `LOAD_CELL_READ` and `LOAD_CELL_DIAGNOSTIC` macros |
 | `/usr/data/openad5x/mcu-flash` | `ad5x-mcu-flash` and the IFS flash tools |
 | `/usr/data/kalico-fw` | Staging for MCU firmware images, and `eboard.flash` |
