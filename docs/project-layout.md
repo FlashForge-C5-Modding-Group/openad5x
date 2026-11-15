@@ -13,7 +13,7 @@ OpenAD5X is split over a few repositories in the [FlashForge-C5-Modding-Group](h
 
 ## What `AD5X-FS` holds
 
-- `fs/usr/data/config/`: `printer.base.cfg`, `printer.cfg`, `ad5x_home.cfg`, `ad5x_print.cfg`, `ad5x_shaper.cfg`, `loadcell.cfg`, `moonraker.conf`, `mainsail.cfg` (client macros, with stock AD5X pause and resume), and `AFC/` with `AFC.cfg`, `AFC_Hardware-IFS.cfg`, `AFC_Macro_Vars.cfg` and `ifs_macros.cfg`
+- `fs/usr/data/config/`: `printer.base.cfg`, `printer.cfg`, `ad5x_home.cfg`, `ad5x_print.cfg`, `loadcell.cfg`, `moonraker.conf`, `mainsail.cfg` (client macros, with stock AD5X pause and resume), and `AFC/` with `AFC.cfg`, `AFC_Hardware-IFS.cfg`, `AFC_Macro_Vars.cfg` and `ifs_macros.cfg`
 - `fs/usr/data/openad5x/mcu-flash/`: `ad5x-mcu-flash` (flashes the mainboard and IFS live from a folder of `mcu-firmware/ad5x` images, and stages the eboard for the next power cycle), and `ifs_capture.py` and `ifs_catch.py`, which it uses to flash the IFS MCU over its serial port
 - `fs/usr/data/openad5x/loadcell/loadcell.sh`: bed load cell commands used by `loadcell.cfg`
 - `mcu-firmware/ad5x/`: the AD5X MCU firmware images, with the Kalico build configs for the eboard, mainboard and IFS in `config/`

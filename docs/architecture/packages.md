@@ -1,6 +1,6 @@
 # Packages and builds
 
-Moonraker and Fluidd are packaged as two tarballs and built on a PC. The build scripts are in `AD5X-FS`, under `build/`.
+Moonraker and Fluidd are packaged as two tarballs and built on a PC. The build scripts were in `AD5X-FS`, under `build/`, and have been removed.
 
 !!! note "Previous layout"
     This is how the test printer got Moonraker and the web UI. The [installer](../installer.md) no longer uses these tarballs: it clones Arksine's Moonraker into `/usr/prog/moonraker` with an environment on `python-hf`, installs Fluidd from its latest release, and uses Entware's `nginx-ssl`. The packages and their tested details are kept here until the new way has run on a printer.

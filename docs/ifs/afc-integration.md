@@ -6,7 +6,7 @@ The IFS runs as a unit of [AFC](https://github.com/ArmoredTurtle/AFC-Klipper-Add
 
 AFC is not installed separately. Only the parts the IFS uses ship, in our own repos:
 
-- `kalico-ad5x`, `klippy/extras/`: the 16 AFC modules Klippy loads with this config, unchanged from AFC commit `5ea84ea` (full hash `5ea84ea6fab75b9b49db090f309154d1e52272bb`): `AFC`, `AFC_utils`, `AFC_logger`, `AFC_respond`, `AFC_functions`, `AFC_error`, `AFC_stats`, `AFC_assist`, `AFC_prep`, `AFC_spool`, `AFC_lane`, `AFC_stepper`, `AFC_extruder`, `AFC_unit`, `AFC_BoxTurtle`, `AFC_HTLF`. Next to them `AFC_IFS.py` and `ad5x_filament_sensor.py`. The other AFC units and features (hubs, buffers, LEDs, tip forming, toolchanger, OpenAMS) are left out; a config that adds one of those sections would need its module added.
+- `kalico-ad5x`, `klippy/extras/`: the 16 AFC modules Klippy loads with this config, from AFC commit `5ea84ea` with a source line added to each header (full hash `5ea84ea6fab75b9b49db090f309154d1e52272bb`): `AFC`, `AFC_utils`, `AFC_logger`, `AFC_respond`, `AFC_functions`, `AFC_error`, `AFC_stats`, `AFC_assist`, `AFC_prep`, `AFC_spool`, `AFC_lane`, `AFC_stepper`, `AFC_extruder`, `AFC_unit`, `AFC_BoxTurtle`, `AFC_HTLF`. Next to them `AFC_IFS.py` and `ad5x_filament_sensor.py`. The other AFC units and features (hubs, buffers, LEDs, tip forming, toolchanger, OpenAMS) are left out; a config that adds one of those sections would need its module added.
 - `AD5X-FS`, `fs/usr/data/config/AFC/`: `AFC.cfg`, `AFC_Macro_Vars.cfg` (only `_AFC_CUT_TIP_VARS`), `AFC_Hardware-IFS.cfg` and `ifs_macros.cfg`. No AFC macro files are used: `AFC_IFS` replaces AFC's park, poop, brush and cut with `ADX_PARK`, `ADX_POOP`, `ADX_BRUSH` and `ADX_CUT`, which do the stock moves (`ADX_POOP` does the stock chute flush, also when no IFS lane is loaded); `ADX_CUT` reads `_AFC_CUT_TIP_VARS`.
 - `[include AFC/*.cfg]` goes in `printer.cfg` above the `SAVE_CONFIG` block.
 - `VarFile` in `AFC.cfg` is `/usr/data/openad5x/klipper/config/AFC/AFC.var`. The message `AFC.var.unit not found` on the first start is normal: AFC creates it on the first save.
@@ -58,7 +58,7 @@ Stock keeps the feed motor off while printing, with the extruder pulling through
 
 ## Purge chute
 
-Stock enters and leaves the chute along Y only. AFC's Park, Poop and Brush macros move diagonally in one `G1 X.. Y..` (there is no approach option) and can catch the chute walls. `AFC_IFS` provides `ADX_PARK`, `ADX_POOP` and `ADX_BRUSH`, and at connect it sets AFC's `park_cmd`, `poop_cmd` and `wipe_cmd` to them, but only where `AFC.cfg` still has the AFC defaults. `AFC.cfg` stays upstream.
+Stock enters and leaves the chute along Y only. AFC's Park, Poop and Brush macros move diagonally in one `G1 X.. Y..` (there is no approach option) and can catch the chute walls. `AFC_IFS` provides `ADX_PARK`, `ADX_POOP` and `ADX_BRUSH`, and at connect it sets AFC's `park_cmd`, `poop_cmd` and `wipe_cmd` to them, but only where `AFC.cfg` still has the AFC defaults. `AFC.cfg` is trimmed to the settings the IFS uses.
 
 AFC's order is: unload = cut, park; load = poop, wipe (kick off), wipe. `direct_load` in AFC loads to the nozzle on insert, where stock parks. HTLF assumes home means no lane pressed, while the IFS home is slot 1.
 
@@ -77,4 +77,4 @@ The reason is that the toolhead sensor sits on the lane side of the cutter, so o
 
 ## Open
 
-- The positions in `AFC_Macro_Vars.cfg` (cut, park, purge, kick, brush) were upstream placeholders. The stock AD5X change sequence is in `firmwareExe`, not in `printer.base.cfg`.
+- `AFC_Macro_Vars.cfg` only holds the cut position (`_AFC_CUT_TIP_VARS`, read by `ADX_CUT`); park, purge and brush are the stock moves in `ADX_PARK`, `ADX_POOP` and `ADX_BRUSH`.

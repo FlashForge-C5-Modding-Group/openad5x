@@ -116,7 +116,7 @@ All the stock sections exist in Kalico (`bed_mesh display_status exclude_object 
 | `[printer] max_accel_to_decel: 5000` | Kalico reports `Option 'max_accel_to_decel' is not valid in section 'printer'`. Replace it with `minimum_cruise_ratio: 0.75` (20000 x (1 - 0.75) = 5000, the same as stock) |
 | `[virtual_sdcard] path` | `/usr/data/gcodes`, the same as stock |
 | FlashForge-only commands (`QUERY_ADC`, `GET_FILAMENT_VALUE`, `GET_CUT_VALUE`, `SDCARD_SET_CHANNEL`, ...) | They come from FlashForge's own klippy files, so they do not exist in Kalico. The `filamentValue` and `cutValue` sensors stay as `temperature_sensor` (Generic 3950 on eboard PA3 and PA2) |
-| Macros `M900 M106 M107 HOME MYG67` | Use standard commands only, kept |
+| Macros `M900 M106 M107 HOME MYG67` | `M900`, `M106` and `M107` kept; `HOME` and `MYG67` removed |
 | Calibration | Taken over from the printer's own `/usr/data/config/printer.cfg`: `z_offset`, bed mesh, PID, input shaper |
 
 The fix for the first error is `sed -i '137s/^max_accel_to_decel:5000$/minimum_cruise_ratio: 0.75/' /usr/data/config/kalico/printer.base.cfg`, then a Moonraker `POST /printer/restart`.

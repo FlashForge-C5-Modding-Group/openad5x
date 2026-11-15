@@ -21,11 +21,12 @@ How the printer boots with OpenAD5X. The structure follows [OpenCreator](opencre
 | `05-entfix.sh` | Bind-mounts Entware on `/opt` and runs `rc.unslung start` |
 | `06-sftp.sh` | SFTP for dropbear (see [Network](network.md)) |
 | `08-mcu-wake.sh` | Starts the eboard application, flashing it first when asked, then wakes the eboard again whenever Klippy cannot reach it |
-| `10-klipper.sh` | Links the AFC and IFS modules into Kalico's `extras`, waits for the eboard, and keeps Klippy running |
+| `10-klipper.sh` | Creates empty AFC variable files when missing, waits for the eboard, syncs the Klipper plugins (`oc-plugin sync`) and keeps Klippy running |
 | `20-moonraker.sh` | Moonraker from `/usr/prog/moonraker`, data folder `/usr/data/openad5x/klipper` |
 | `25-nginx.sh` | Entware's nginx, with Fluidd on port 80 |
 | `30-camera.sh` | FlashForge's mjpg-streamer on port 8080 |
 | `40-grumpyscreen.sh` | GrumpyScreen with `DISPLAY_ROTATE=0`, and the MMU panel on when AFC is installed |
+| `99-opencreator-updater.sh` | Runs `opencreator_updater.py`, which merges AD5X-FS config updates into the live config and keeps the `openad5x` folders current (log `/tmp/openad5x-updater.log`) |
 
 The scripts run in parallel, so a script that needs another one waits for it: `10-klipper.sh` for the eboard (`/tmp/openad5x-eboard-ready`, up to 90 s), and `25-nginx.sh` and `06-sftp.sh` for `/opt`.
 
@@ -35,7 +36,7 @@ The scripts run in parallel, so a script that needs another one waits for it: `1
 
 ## Clock
 
-The printer has no battery clock and boots at 1970. `02-fixtime.sh` puts the clock back to the last saved time, sets it from the network when that answers (`rdate`, with an HTTP `Date` header as a fallback), and saves the time every 5 minutes to `/usr/data/openad5x/.clock`.
+The printer has no battery clock and boots at 1970. `02-fixtime.sh` sets it from the network with `rdate` once `time.nist.gov` answers a ping, trying up to 30 times 2 seconds apart.
 
 The clock matters because with a 1970 date HTTPS fails with "certificate is not yet valid".
 
