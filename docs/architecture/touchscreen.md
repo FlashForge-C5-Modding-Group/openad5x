@@ -8,7 +8,7 @@ The touchscreen app is GrumpyScreen, the same release as the Creator 5: [`FlashF
 |---|---|
 | Install path | `/usr/data/grumpyscreen` (`grumpyscreen`, `grumpyscreen.cfg`, `release_info.json`; release 0.0.4 when installed) |
 | Started by | `startup/scripts/40-grumpyscreen.sh` with `DISPLAY_ROTATE=0`, restarted 3 s after it stops |
-| Config | `/usr/data/openad5x/klipper/config/grumpyscreen.cfg`, copied on the first start from `/usr/data/grumpyscreen/grumpyscreen.cfg` (from AD5X-FS), editable from Fluidd |
+| Config | `/usr/data/openad5x/grumpyscreen/grumpyscreen.cfg` (from AD5X-FS, kept current by the updater), plus your own changes in `/usr/data/openad5x/klipper/config/grumpyscreen.ini`, editable from Fluidd |
 | Log | `/usr/data/logs/grumpyscreen.log` |
 | Touch input | The input device with `goodix` or `touch` in its name (the TSC2007, `event1`), passed in `LVGL_EVDEV_DEV` |
 | Calibration | None in this build: it uses the driver's numbers as screen pixels |

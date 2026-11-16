@@ -57,28 +57,28 @@ Ours = AFC_Hardware-IFS.cfg + kalico-ad5x tmc2209 defaults. Nominal current = (C
 
 | Item | Stock | Ours | Verdict / heat impact |
 |---|---|---|---|
-| GCONF | 0x1dc | 0x1c4 (shaft=0, index_otpw=0, rest same) | DIFFERENT, harmless (dir pin inverted to compensate; index pin unused) |
+| GCONF | 0x1dc | 0x1dc (`driver_SHAFT: 1`, `driver_INDEX_OTPW: 1`) | MATCH |
 | en_spreadcycle | 1 | 1 (no stealthchop_threshold) | MATCH |
 | I_scale_analog / pdn_disable | 0 / 1 | 0 / 1 | MATCH |
-| IRUN steady state | 9, vsense 0 = 0.138 A | 9, vsense 0 after `ifs_stock_current` (2 s after start) | MATCH only after the delayed_gcode runs |
-| IRUN at startup | 9 | 31 with vsense 1 (0.245 A nominal): run_current 0.25 clamps to CS31/vsense1 in Kalico's helper (the cfg comment "keeps Kalico in vsense=0" is stale) | DIFFERENT during the first ~2 s, and permanently if the delayed_gcode fails or is not re-run; 0.245 A is 1.8x current = 3.2x motor heat vs stock |
+| IRUN steady state | 9, vsense 0 = 0.138 A | 9, vsense 0 (`driver_IRUN: 9`, `driver_VSENSE: 0`) | MATCH |
+| IRUN at startup | 9 | 9, vsense 0 (set directly, no startup macro) | MATCH |
 | IHOLD | 0 | hold_current 0.01 -> ihold 0 (vsense1 and 0) | MATCH |
 | IHOLDDELAY | 10 | 10 | MATCH |
 | TPOWERDOWN | 128 | 128 | MATCH |
 | CHOPCONF TOFF/HSTRT/HEND/TBL | 3/4/5/1 | 3/4/5/1 | MATCH |
-| CHOPCONF vsense | 0 | 1 at start, 0 after delayed_gcode | as IRUN |
+| CHOPCONF vsense | 0 | 0 | MATCH |
 | MRES / intpol | 8 usteps / 1 | microsteps 8 / interpolate True | MATCH |
-| PWMCONF | ofs75 grad23 freq1 as ag1 fw0 reg8 lim12 | ofs36 grad14, rest same | DIFFERENT, no effect (spreadCycle) |
-| TPWMTHRS | not written (0) | 0xFFFFF | DIFFERENT, no effect while en_spreadcycle=1 |
+| PWMCONF | ofs75 grad23 freq1 as ag1 fw0 reg8 lim12 | ofs75 grad23 (`driver_PWM_OFS`, `driver_PWM_GRAD`), rest same | MATCH |
+| TPWMTHRS | not written (0) | 0 (`driver_TPWMTHRS: 0`) | MATCH |
 | TCOOLTHRS/SGTHRS/COOLCONF | not written (0) | SGTHRS 0, COOLCONF 0 | MATCH |
 | Re-write per move | never | not re-written unless AFC sets print_current (not set) | MATCH |
 | Feed EN lifetime | on during F10 move; stays on until F112/F11 end; host sends F112 | AFC `do_enable`; in earlier config AFC `sync_to_extruder` kept the drive enabled and stepping for the whole print (patched 2026-10-25 to disable instead) | UNKNOWN for current AFC lane.move end (AFC source not local). Biggest heat suspect: continuous IRUN for hours when synced |
 | Selector EN | only while stepping | AFC `select_lane(disable_selector)` / return_to_home disable | UNKNOWN per call path; 5 s left-on test showed no problem |
 | Idle disable | none in stock; EN released by F11/F112 | no idle disable in our cfg | UNKNOWN (Kalico idle_timeout behaviour on AFC steppers not checked) |
 | Feed speed | S1200 = 20 mm/s, S600 = 10 mm/s | 20 mm/s long/short | MATCH |
-| Feed accel | 700 (inferred) | 100 | DIFFERENT, slower ramp, no heat concern |
+| Feed accel | 700 (inferred) | 500 (`long_moves_accel`, `short_moves_accel`; 500 per STOCK_FEED_ACCEL.md) | see STOCK_FEED_ACCEL.md |
 | Steps/mm | 343.696 | 1600/4.655 = 343.72 | MATCH |
-| Selector speed / ramp | 140.86 deg/s, none | 140 deg/s, accel 4000 | MATCH (close) |
+| Selector speed / ramp | 140.86 deg/s, none | 70.43 deg/s, accel 0 (`selector_movement_speed`, `selector_movement_accel`) | stock speed not settled: 140.86 here, 70.43 in stock-firmware.md (timer clock unproven, STOCK_FEED_ACCEL.md) |
 
 ## Likely overheat causes, in order
 

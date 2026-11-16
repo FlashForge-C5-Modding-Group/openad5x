@@ -21,8 +21,8 @@ The AD5X installs through the OpenCreator installer (`touchscreen-installer`, br
 
 | Step | What it does on the AD5X |
 |---|---|
-| `01-install-entware` | Entware on `/usr/data/bin/opt`, mounted on `/opt`. No NaN switch address is passed |
-| `02-install-loopscript` | Clones `AD5X-FS` and copies `startup`, `firmware`, `moonraker`, `plugin-manager`, `mcu-flash`, `loadcell` and `nginx` from it into `/usr/data/openad5x`, keeping files you added |
+| `01-install-entware` | Entware on `/usr/data/bin/opt`, mounted on `/opt`. The legacy-NaN switch is set at `0x00a130d1` (kernel package 2.0.1) |
+| `02-install-loopscript` | Clones `AD5X-FS` and copies `startup`, `firmware`, `moonraker`, `fluidd`, `plugin-manager`, `mcu-flash`, `loadcell`, `nginx` and `grumpyscreen` from it into `/usr/data/openad5x`, keeping files you added |
 | `05-install-python` | The hard-float Python 3.13 in `/usr/data/python-hf`: the Creator 5 bundle, from the `AD5X-FS` release `python-hf-3.13-r1` |
 | `10-install-stack` | Kalico (`kalico-ad5x`) into `/usr/data/openad5x/klipper/klipper`, a `klippy-env`, and the default `AD5X-FS` config into `…/klipper/config` |
 | `15-install-moonraker` | Arksine's Moonraker into `/usr/prog/moonraker`, with an environment on `python-hf` |

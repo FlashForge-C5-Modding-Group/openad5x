@@ -121,7 +121,7 @@ All the stock sections exist in Kalico (`bed_mesh display_status exclude_object 
 
 The fix for the first error is `sed -i '137s/^max_accel_to_decel:5000$/minimum_cruise_ratio: 0.75/' /usr/data/config/kalico/printer.base.cfg`, then a Moonraker `POST /printer/restart`.
 
-The load cell commands are added through `loadcell.cfg`, included from `printer.cfg`. See [Load cell in Kalico](loadcell-kalico.md). A test entry `[output_pin level_res] pin: PC0` (stock drives PC0 high at boot) is not needed for the load cell.
+The load cell commands are added through `macros.cfg`, included from `printer.cfg`. See [Load cell in Kalico](loadcell-kalico.md). A test entry `[output_pin level_res] pin: PC0` (stock drives PC0 high at boot) is not needed for the load cell.
 
 ## What a good start looks like
 

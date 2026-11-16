@@ -2,9 +2,6 @@
 
 How the printer boots with OpenAD5X. The structure follows [OpenCreator](opencreator.md): a `firmwareExe` script brings the network up and hands over to `startup.sh`, which starts a folder of scripts. The files are in `AD5X-FS` under `fs/usr/data/openad5x/`.
 
-!!! note "Status"
-    This boot is written but has not run on a printer yet. The previous boot (one `app_startup.sh` line and a `startup.d` folder) is what the test printer runs today; see [Previous boot](#previous-boot).
-
 ## The chain
 
 1. FlashForge's `/usr/prog/app_startup.sh` runs the USB hook, the control update check and the drivers, then starts `/usr/prog/PROGRAM/software/firmwareExe -1 -D -qws`. After 10 s it copies the stock binary back and starts it again unless a process named `firmwareExe` is running.
@@ -23,16 +20,17 @@ How the printer boots with OpenAD5X. The structure follows [OpenCreator](opencre
 | `08-mcu-wake.sh` | Starts the eboard application, flashing it first when asked, then wakes the eboard again whenever Klippy cannot reach it |
 | `10-klipper.sh` | Creates empty AFC variable files when missing, waits for the eboard, syncs the Klipper plugins (`oc-plugin sync`) and keeps Klippy running |
 | `20-moonraker.sh` | Moonraker from `/usr/prog/moonraker`, data folder `/usr/data/openad5x/klipper` |
+| `25-fluidd-macros.sh` | Once Moonraker is up, gives Fluidd the OpenAD5X macro groups (`fluidd/macros.json`) if it has no layout yet |
 | `25-nginx.sh` | Entware's nginx, with Fluidd on port 80 |
 | `30-camera.sh` | FlashForge's mjpg-streamer on port 8080 |
-| `40-grumpyscreen.sh` | GrumpyScreen with `DISPLAY_ROTATE=0`, and the MMU panel on when AFC is installed |
+| `40-grumpyscreen.sh` | GrumpyScreen with `DISPLAY_ROTATE=0`, the full config `openad5x/grumpyscreen/grumpyscreen.cfg` and your changes in `config/grumpyscreen.ini`; at every boot it sets `hide_spoolman` (from `[spoolman]` in `moonraker.conf`) and `hide_mmu` (from AFC in `printer.cfg`) in the `.ini` |
 | `99-opencreator-updater.sh` | Runs `opencreator_updater.py`, which merges AD5X-FS config updates into the live config and keeps the `openad5x` folders current (log `/tmp/openad5x-updater.log`) |
 
 The scripts run in parallel, so a script that needs another one waits for it: `10-klipper.sh` for the eboard (`/tmp/openad5x-eboard-ready`, up to 90 s), and `25-nginx.sh` and `06-sftp.sh` for `/opt`.
 
 ## Eboard start and flash hook
 
-`08-mcu-wake.sh` talks to the eboard bootloader on `ttyS5` at 115200 before Klippy connects. It waits for the `Ready` lines and sends `A`; the bootloader answers ACK (`0x06`) and starts the application. If `/usr/data/kalico-fw/eboard.flash` exists, it holds the path of a `.hex` to flash first with `IAPCommand`. The file is deleted after use, and the log is `/usr/data/logs/openad5x/eboard-flash.log`. See [Flashing](../mcu/flashing.md).
+`08-mcu-wake.sh` talks to the eboard bootloader on `ttyS5` at 115200 before Klippy connects. It waits for the `Ready` lines and sends `A`; the bootloader answers ACK (`0x06`) and starts the application. If `/usr/data/kalico-fw/eboard.flash` exists, it holds the path of a `.hex` to flash first with `IAPCommand`. The file is deleted once the flash log shows `STM32Write: success`; after a failure it stays and is tried again at the next power-on (once per boot). The log is `/usr/data/logs/openad5x/eboard-flash.log`. See [Flashing](../mcu/flashing.md).
 
 ## Clock
 
@@ -71,4 +69,4 @@ That `startup.sh` ran the eboard, Klipper (`/usr/data/kalico/start.sh`), the net
 
 ## Tested
 
-On the previous boot, power-cycle tests passed on 2026-10-10 (eboard, Klipper with both MCUs configured, network, Moonraker, nginx), on 2026-10-11 (the clock: set, no `ntpclient` left running, no certificate errors) and on 2026-10-23 (Entware and gcc). Nothing of the new boot has been tested yet.
+On the previous boot, power-cycle tests passed on 2026-10-10 (eboard, Klipper with both MCUs configured, network, Moonraker, nginx), on 2026-10-11 (the clock: set, no `ntpclient` left running, no certificate errors) and on 2026-10-23 (Entware and gcc).
