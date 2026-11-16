@@ -7,7 +7,7 @@ Static analysis of the stock `ifs.bin` (base 0x08010000): the Ghidra decompile p
 Init `FUN_08011a2c` (called from `FUN_080111a0`):
 - `FUN_08011eac(0x18,1)` RCC+0x18 (APB2PCLKEN) |= 0x18 (GPIOB, GPIOC clocks). `FUN_08011e6c(0xe000,1)` RCC+0x14 (AHBPCLKEN) |= 0xE000 = ADC2/ADC3/ADC4 clocks (bits 13..15; the 0x40020C00/0x40021800/0x40021C00 ADC bases match ADC2/3/4) [I for bit names].
 - `FUN_08010fa2(0,7)` -> `FUN_08011e48(0x100,0)`: RCC+0x2C (CFG2) `&= 0xFFFFFE0F` (ADCPLLPRES=0, ADCPLLEN bit8=0, PLL ADC clock OFF); `FUN_08011e30(7)`: CFG2 `[3:0] = 7` = ADCHPRES. [V]
-- ADCHCLK divider table at flash 0x08019EB4 (read from ifs.bin): `01 02 04 06 08 0a 0c 10 20 ...`, index 7 = 0x10 = 16. Same table is used by the clock-reading routine `FUN_08011ecc` (`param_1[5] = HCLK / table[CFG2 & 0xf]`). So **ADC clock = HCLK / 16 = 144 MHz / 16 = 9.0 MHz** [V for /16, HCLK=144 MHz from your confirmed value].
+- ADCHCLK divider table at flash 0x08019EB4 (read from ifs.bin): `01 02 04 06 08 0a 0c 10 20 ...`, index 7 = 0x10 = 16. Same table is used by the clock-reading routine `FUN_08011ecc` (`param_1[5] = HCLK / table[CFG2 & 0xf]`). So **ADC clock = HCLK / 16 = 144 MHz / 16 = 9.0 MHz** [V for /16, HCLK=144 MHz from the confirmed value].
 - `FUN_08011e14(0x20000, 0x3800)`: CFG2 `&= 0xFFFF03FF | 0x20000 | 0x3800` = ADC1M source bit10=0 (HSI), ADC1MPRES bits[15:11]=7 (/8) -> 1 MHz reference (only for ADC power-up/cal). Bit 17 meaning [U]. Not part of the conversion rate.
 - ADC CTRL3 (+0x58) is never written (only read for RDY, flag 0x20). CKMOD (bit 4) stays at its reset value; with the PLL ADC clock disabled the ADC runs from ADCHCLK [I; the Kalico driver also clears CKMOD for the HCLK mode]. RES (CTRL3[1:0]) stays at reset = 12 bit [I]; values are compared with 4095-scale thresholds (0x3e9, 2999, 0xc1c = 3100) so 12 bit is consistent.
 - `FUN_08011144` (per ADC): CTRL1 mode independent, scan off; CTRL2: continuous off, align right, EXTSEL = 0xE0000 (=7, software trigger); RSEQ1 length 1. Then ADON, wait RDY, CAL (CTRL2 bit2), wait cal done. [V]
@@ -37,7 +37,7 @@ Idle pass (no UART line pending, no flags), from the disassembly [V]:
 | best estimate | 1.5 us | 1.8 ms | 38 ms |
 | max | 3.5 us | 3.8 ms | 80 ms |
 
-Measured from code: ADC clock, sample time, blocking structure, 228 us per round, 1001 passes, 21 rounds. Assumed: pass time (flash prefetch state, ISR load). The spread is about 4x and cannot be narrowed without a measurement (for example two F21 polls timed against value changes, which I did not do).
+Measured from code: ADC clock, sample time, blocking structure, 228 us per round, 1001 passes, 21 rounds. Assumed: pass time (flash prefetch state, ISR load). The spread is about 4x and cannot be narrowed without a measurement (for example two F21 polls timed against value changes, not done).
 
 ## 4. Consequence for the 50-entry odometer ring (SysTick 20 ms, FUN_080121bc)
 

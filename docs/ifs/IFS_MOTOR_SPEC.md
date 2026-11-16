@@ -7,7 +7,7 @@ Bottom line: no source found that gives the exact model or electrical ratings of
 | Fact | Status | Source |
 |---|---|---|
 | IFS has two separate stepper motors: filament feed (white connector) and channel change/selector (blue connector) | Confirmed | https://filament2print.com/de/flashforge-ad5x-ersatzteile/3902-motoren-flashforge-ad5x.html ; https://partsbuilt.com/ifs-filament-feeding-motor-for-ad5x-flashforge/ ; https://partsbuilt.com/stepper-motor-for-ifs-channel-changing-ad5x-flashforge/ (titles seen in search only, pages returned 403) |
-| Motor type = 35 mm can-stack geared PM stepper, blue molded housing, D-flat shaft | Inferred from user photo (capture.png); no source names "35BYJ46" for AD5X |
+| Motor type = 35 mm can-stack geared PM stepper, blue molded housing, D-flat shaft | Inferred from a photo of the motor; no source names "35BYJ46" for AD5X |
 | Model number | NOT FOUND |
 | Rated voltage | NOT FOUND. Generic 35BYJ46 is 12 V typical; variants 5-36 V exist (https://www.micro-steppermotor.com/sale-14494393-35byj46-voltage-pm-stepper-motor-7-5-stepper-motor-5-wire-permanent-magnet-stepper-motor.html ; https://maintexmotors.com/product/35byj46-stepper-motor/ lists 3-24 V) |
 | Coil resistance | NOT FOUND. Generic: 130 ohm (12 V) and 300 ohm (12 V/24 V) variants; Maintex range 10-600 ohm |

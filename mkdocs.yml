@@ -109,7 +109,7 @@ nav:
       - Kalico firmware: ifs/kalico-firmware.md
       - IFS in AFC: ifs/afc-integration.md
       - Stock host flows: ifs/STOCK_SPEC_HOST.md
-      - Stock IFS firmware: ifs/STOCK_SPEC_IFS.md
+      - Stock IFS firmware spec: ifs/STOCK_SPEC_IFS.md
       - Stock load wizard: ifs/STOCK_LOAD_WIZARD.md
       - Stock feed acceleration: ifs/STOCK_FEED_ACCEL.md
       - Stock motor drive: ifs/STOCK_MOTOR_DRIVE.md
