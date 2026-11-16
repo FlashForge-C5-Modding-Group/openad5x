@@ -10,7 +10,7 @@ The installer flashes the images in `mcu-firmware/ad5x` in the `AD5X-FS` clone (
 - the IFS live, as described in [Kalico firmware on the IFS](../ifs/kalico-firmware.md) (including an IFS that still runs FlashForge's firmware)
 - the eboard by copying the hex to `/usr/data/kalico-fw` and writing its path into `eboard.flash`, so `08-mcu-wake.sh` flashes it at the next real power-on (a reboot is not enough, because the bootloader only waits after power-on)
 
-It refuses to run during a print or a pause, pauses Klippy while it flashes and restarts it afterwards, and logs to `/usr/data/logs/mcu-flash.log`. Not yet run on a printer.
+It refuses to run during a print or a pause, pauses Klippy while it flashes and restarts it afterwards, and logs to `/usr/data/logs/mcu-flash.log`.
 
 ## Mainboard
 

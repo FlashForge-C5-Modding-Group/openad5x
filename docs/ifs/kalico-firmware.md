@@ -46,7 +46,7 @@ The tools are in `AD5X-FS`, under `fs/usr/data/openad5x/mcu-flash/`:
 
 The bootloader only listens for a short window right after the IFS powers up (while the flag at `0x0800D000` is set).
 
-`ad5x-mcu-flash` picks the way by asking Moonraker whether Klippy has an `mcu ifs`. A Kalico IFS gets the request string above. An IFS that still runs FlashForge's firmware gets what FlashForge's control `run.sh` does: `ifsF37 /dev/ttyS4`, then `IFSCommand ifs.hex /dev/ttyS4`. The stock path has not been run on a printer.
+`ad5x-mcu-flash` picks the way by asking Moonraker whether Klippy has an `mcu ifs`. A Kalico IFS gets the request string above. An IFS that still runs FlashForge's firmware gets what FlashForge's control `run.sh` does: `ifsF37 /dev/ttyS4`, then `IFSCommand ifs.hex /dev/ttyS4`.
 
 The way back to the stock firmware is `IFSCommand /usr/prog/PROGRAM/control/1.1.1/ifs.hex /dev/ttyS4` while the bootloader is waiting. `ifsF37` no longer works once Kalico runs, because Kalico does not know F37.
 

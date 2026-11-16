@@ -24,7 +24,7 @@ OpenAD5X replaces FlashForge's closed programs on the AD5X with open-source ones
 
 - **[Status and roadmap](status-and-roadmap.md)**
 
-    What works, what is untested and what is open.
+    What works and what is open.
 
 - **[IFS](ifs/index.md)**
 

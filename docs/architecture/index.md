@@ -47,7 +47,7 @@ The printer does not work without these.
 
 | Step | Status |
 |---|---|
-| Startup script that does jobs 1, 2 and 4 instead of `firmwareExe` | <span class="oc-status ok">Done</span> on the previous boot; the [new boot](startup.md) is written, not yet tested |
+| Startup script that does jobs 1, 2 and 4 instead of `firmwareExe` | <span class="oc-status ok">Done</span>, see [Startup](startup.md) |
 | Moonraker and the web UI; Kalico at boot (`10-klipper.sh`; the previous boot used `/usr/data/kalico/start.sh`) | <span class="oc-status ok">Done</span> |
 | Open-source touchscreen app (GrumpyScreen, the Creator 5 release) | <span class="oc-status ok">Done</span> |
 | IFS and bed load cell | <span class="oc-status ok">Done</span>, see [IFS](../ifs/index.md) and [load cell](../research/loadcell.md) |
