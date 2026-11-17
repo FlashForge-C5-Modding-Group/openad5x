@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {#- Link previews (Discord, Reddit, X, ...). Needs site_url in mkdocs.yml for the absolute URLs. -#}
+  {#- Zensical errors on missing values, so test each one before reading it. -#}
+  {%- set homepage = not page or (page.is_homepage is defined and page.is_homepage)
+        or (page.url is defined and page.url in ["", "/", "./", "index.html"]) -%}
+  {%- set title = config.site_name if homepage or not page.title else page.title ~ " - " ~ config.site_name -%}
+  {%- set description = config.site_description -%}
+  {%- if page and page.meta is defined and page.meta and page.meta.description is defined and page.meta.description -%}
+    {%- set description = page.meta.description -%}
+  {%- endif -%}
+  {%- set image = (config.site_url or "") ~ "assets/images/social.png?v=2" -%}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ config.site_name }}">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  {%- if page and page.canonical_url is defined and page.canonical_url %}
+  <meta property="og:url" content="{{ page.canonical_url }}">
+  {%- endif %}
+  <meta property="og:image" content="{{ image }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="OpenAD5X: open-source software for the FlashForge AD5X">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ title }}">
+  <meta name="twitter:description" content="{{ description }}">
+  <meta name="twitter:image" content="{{ image }}">
+  <meta name="theme-color" content="#1a2130">
+{% endblock %}
+

@@ -1,41 +1,83 @@
-<div class="oc-hero" markdown>
+---
+title: Home
+description: Open-source software for the FlashForge AD5X. Klipper (Kalico), Fluidd, Moonraker and the IFS multi-colour feeder running through AFC.
+hide:
+  - toc
+---
+
+<div class="oc-landing" markdown>
+
+<div class="oc-landing-hero" markdown>
 
 # OpenAD5X
 
 Open-source software for the FlashForge AD5X.
+{ .oc-lede }
 
-[Status and roadmap](status-and-roadmap.md) | [Project layout](project-layout.md)
+Kalico (Klipper) on the printer and on all of its boards, the IFS four-colour feeder run by AFC,
+and Fluidd and GrumpyScreen, all on the hardware you already own. Every part is open source
+and can be changed.
+
+[Get started](getting-started.md){ .md-button .md-button--primary }
+[Discord](https://discord.gg/RsdkqDtfww){ .md-button }
+[How we're different](different.md){ .md-button }
 
 </div>
 
-OpenAD5X replaces FlashForge's closed programs on the AD5X with open-source ones. FlashForge's Linux stays as it is. The closed program being replaced is `firmwareExe`, which is the screen app and also runs most of the printer.
-
-## What runs on the printer
-
-- **Kalico** (Klipper) on the host and on the mainboard, toolhead board and IFS MCUs
-- **Moonraker** and **Fluidd**
-- **GrumpyScreen** on the touchscreen
-- The **IFS** multi-colour feeder, run as a unit of **AFC** (Automated Filament Changer), with behaviour matched to the stock firmware: selector, feeding, purge chute, wipes, auto-load and unload
-- The bed load cell for probing
-
-## Where to read next
+## Why OpenAD5X?
 
 <div class="grid cards" markdown>
 
-- **[Status and roadmap](status-and-roadmap.md)**
+-   :material-printer-3d-nozzle:{ .lg .middle } **Kalico on the printer**
 
-    What works and what is open.
+    ---
 
-- **[IFS](ifs/index.md)**
+    Kalico runs on the AD5X's own computer and on the mainboard, toolhead board and IFS.
+    Input shaper with the built-in accelerometer, bed probing with the load cell and an
+    adaptive mesh switch.
 
-    How the stock IFS and host behave, decoded from the stock firmware, and how ours matches.
+-   :material-printer-3d:{ .lg .middle } **The IFS through AFC**
 
-- **[Architecture](architecture/index.md)**
+    ---
 
-    The plan: what firmwareExe does and how each part is replaced.
+    The four-lane IFS runs as an AFC unit, matched to the stock firmware: selector,
+    feeding, cutting, the purge chute, wipes, auto-load and unload.
+    [How the IFS works](ifs/index.md)
 
-- **[Project layout](project-layout.md)**
+-   :material-monitor-dashboard:{ .lg .middle } **Fluidd and GrumpyScreen**
 
-    Which repository holds what.
+    ---
+
+    Full web control with Fluidd, and GrumpyScreen on the touchscreen. Timelapse,
+    SFTP and root login come with it.
+
+-   :material-code-braces:{ .lg .middle } **Open and editable**
+
+    ---
+
+    Plain Klipper configs, updates through the Moonraker update panel, and
+    [every repository](project-layout.md) on GitHub.
+
+-   :material-account-group:{ .lg .middle } **Community**
+
+    ---
+
+    Developers and owners in one place, for help, testing and what's next.
+    [Join the Discord](https://discord.gg/RsdkqDtfww)
 
 </div>
+
+!!! warning "Development software"
+    Don't treat OpenAD5X as complete. What you've seen from reviews, videos, or anything
+    outside of this wiki may be out of date, different, or not working.
+
+Not sure? [Is OpenAD5X for you?](is-it-for-you.md) walks through what you gain and what you give up.
+The [feature list](features.md) and [status and roadmap](status-and-roadmap.md) show what's finished
+and what's still in testing.
+
+</div>
+
+!!! danger "Warranty and responsibility"
+    OpenAD5X's team and contributors take no responsibility for damage, wear or anything
+    else that happens to your printer. If you brick or break it, that's on you, and
+    installing mods may void your warranty. Be careful!
